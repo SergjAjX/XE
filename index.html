@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="ru">
+   
+<head>
+   
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+ 
+    
+    <meta name="theme-color" content="#27ae60">
+    <meta name="description" content="Диабет-Помощник v7.3 - Исправленные графики">
+  
+    <title>Диабет-Помощник v7.3 Pro</title>
+  
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js" defer></script>
+    <style>
+        :root {
+            --primary: #27ae60; --primary-dark: #1e8449; --warning: #f39c12; --danger: #e74c3c;
+            --info: #3498db; --purple: #9b59b6; --bg: #f4f7f6; --card: #ffffff;
+            --text: #2c3e50; --gray: #95a5a6; --light-gray: #ecf0f1;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg); color: var(--text); margin: 0; padding: 20px;
+            display: flex; justify-content: center;
+        }
+        .app-container {
+            width: 100%; max-width: 480px; background: var(--card); border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); overflow: hidden; padding-bottom: 20px;
+            position: relative; z-index: 1;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white; padding: 20px; text-align: center;
+        }
+        .header h1 { margin: 0; font-size: 18px; }
+        .header p { margin: 5px 0 0; opacity: 0.9; font-size: 12px; }
+        .header-actions { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+        .btn-header {
+            padding: 8px 15px; background: rgba(255,255,255,0.2); color: white;
+            border: none; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-header:hover { background: rgba(255,255,255,0.3); }
+        
+        .tabs {
+            display: flex; background: var(--light-gray); padding: 5px;
+            margin: 15px 20px 0; border-radius: 12px;
+        }
+        .tab-btn {
+            flex: 1; padding: 10px; border: none; background: none;
+            border-radius: 10px; font-size: 14px; font-weight: 500;
+            cursor: pointer; color: var(--gray); transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: white; color: var(--primary); font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .tab-content { display: none; padding: 20px; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .settings-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            padding: 15px; background: #e8f8f5; border-radius: 12px; margin-bottom: 15px;
+        }
+        .setting-item { font-size: 12px; }
+        .setting-item label { font-size: 11px; color: var(--gray); margin-bottom: 3px; }
+        .setting-item input {
+            width: 100%; padding: 8px; border-radius: 6px;
+            border: 1px solid #ccc; text-align: center; font-size: 14px;
+        }
+        .setting-item.highlight { background: #fff3cd; border-radius: 6px; padding: 5px; }
+        .setting-item.highlight label { color: #9a6b00; font-weight: bold; }
+        .setting-item.warning { background: #fadbd8; border-radius: 6px; padding: 5px; }
+        .setting-item.warning label { color: #922b21; font-weight: bold; }
+        .setting-item.info { background: #d5f5e3; border-radius: 6px; padding: 5px; }
+        .setting-item.info label { color: #1e8449; font-weight: bold; }
+        
+        .main-form { padding: 0 20px 20px; }
+        label { font-size: 14px; color: var(--gray); margin-bottom: 5px; display: block; }
+        
+        .product-search-container { position: relative; margin-bottom: 10px; }
+        .product-search {
+            width: 100%; padding: 12px 12px 12px 40px;
+            border: 1px solid #ddd; border-radius: 10px; font-size: 15px; background: white;
+        }
+        .search-icon {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            color: var(--gray); font-size: 18px; pointer-events: none;
+        }
+        
+        .product-selector {
+            display: flex; gap: 8px; margin-bottom: 15px; position: relative; z-index: 10;
+        }
+        select {
+            flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 10px;
+            font-size: 15px; background: white; cursor: pointer; appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2327ae60' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat; background-position: right 10px center;
+            background-size: 16px; padding-right: 40px; max-height: 200px;
+        }
+        select:disabled { background-color: #f5f5f5; cursor: not-allowed; opacity: 0.7; }
+        .btn-add-product {
+            padding: 12px 16px; background: var(--primary); color: white;
+            border: none; border-radius: 10px; font-size: 20px; cursor: pointer;
+            transition: all 0.2s; z-index: 11;
+        }
+        .btn-add-product:hover { background: var(--primary-dark); transform: scale(1.05); }
+        
+        input[type="number"], input[type="text"] {
+            width: 100%; padding: 12px; margin-bottom: 15px;
+            border: 1px solid #ddd; border-radius: 10px; font-size: 16px;
+        }
+        
+        .cart-section {
+            background: #f8f9fa; border-radius: 15px; padding: 15px;
+            margin-bottom: 15px; border: 2px dashed #ddd;
+        }
+        .cart-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+        }
+        .cart-title { font-weight: bold; color: var(--text); display: flex; align-items: center; gap: 8px; }
+        .cart-count { background: var(--primary); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+        .btn-clear-cart { background: none; border: none; color: var(--danger); font-size: 12px; cursor: pointer; padding: 5px; }
+        .cart-list { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; }
+        .cart-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: white; padding: 10px; margin-bottom: 8px; border-radius: 8px;
+            font-size: 13px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .cart-item-info { flex: 1; min-width: 0; }
+        .cart-item-name { 
+            font-weight: bold; color: var(--text); white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; max-width: 200px;
+            display: inline-block; vertical-align: middle;
+        }
+        .cart-item-details { font-size: 11px; color: var(--gray); margin-top: 3px; }
+        .cart-item-remove {
+            background: #fadbd8; color: var(--danger); border: none;
+            width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+            font-size: 16px; display: flex; align-items: center; justify-content: center;
+            margin-left: 10px; flex-shrink: 0;
+        }
+        .cart-item-remove:hover { background: var(--danger); color: white; }
+        .cart-empty { text-align: center; color: var(--gray); padding: 20px; font-size: 13px; }
+        .cart-summary {
+            margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;
+            display: flex; justify-content: space-between; font-size: 14px; font-weight: bold;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .cart-summary-item { display: flex; align-items: center; gap: 5px; }
+        .cart-summary span { color: var(--primary); }
+        .cart-summary .insulin-value { color: var(--danger); }
+        
+        .btn-add-to-cart {
+            width: 100%; padding: 12px; background: #3498db; color: white;
+            border: none; border-radius: 10px; font-size: 16px; font-weight: bold;
+            cursor: pointer; margin-bottom: 15px; transition: all 0.2s;
+        }
+        .btn-add-to-cart:hover { background: #2980b9; }
+        
+        .btn-calc {
+            width: 100%; padding: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white; border: none; border-radius: 12px;
+            font-size: 18px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); transition: transform 0.2s;
+        }
+        .btn-calc:active { transform: scale(0.98); }
+        .btn-calc:disabled { background: var(--gray); cursor: not-allowed; box-shadow: none; opacity: 0.7; }
+
+        .timer-section {
+            margin: 20px; padding: 20px;
+            background: linear-gradient(135deg, #e8f4fd, #d5e8f7);
+            border-radius: 15px; border: 2px solid var(--info);
+            display: none; animation: slideIn 0.3s ease;
+        }
+        .timer-section.show { display: block; }
+        .timer-display {
+            font-size: 48px; font-weight: bold; color: var(--info);
+            text-align: center; margin: 10px 0; font-family: 'Courier New', monospace;
+        }
+        .timer-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-timer {
+            flex: 1; padding: 12px; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-timer-start { background: var(--primary); color: white; }
+        .btn-timer-start:hover { background: var(--primary-dark); }
+        .btn-timer-stop { background: var(--danger); color: white; }
+        .btn-timer-stop:hover { background: #c0392b; }
+        .btn-timer-reset { background: var(--warning); color: white; }
+        .btn-timer-reset:hover { background: #d68910; }
+        .timer-notification {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--danger); color: white; padding: 15px 30px;
+            border-radius: 50px; font-weight: bold; font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 9999;
+            display: none; animation: bounce 0.5s;
+        }
+        .timer-notification.show { display: block; }
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+
+        .result-card {
+            margin: 20px; padding: 20px; background: #fff;
+            border: 2px solid var(--primary); border-radius: 15px;
+            text-align: center; display: none; animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .result-card.warning { border-color: var(--warning); background: #fef5e7; }
+        .result-card.danger { border-color: var(--danger); background: #fdedec; }
+        .big-number { font-size: 40px; font-weight: bold; margin: 5px 0; }
+        .text-green { color: var(--primary); } .text-red { color: var(--danger); }
+        .text-orange { color: var(--warning); } .text-gray { color: var(--gray); }
+        .sub-text { color: var(--gray); font-size: 13px; }
+        .correction-info {
+            margin-top: 15px; padding: 12px; background: #f8f9fa;
+            border-radius: 8px; font-size: 12px; text-align: left; line-height: 1.6;
+        }
+        .correction-info .no-correction {
+            background: #fff3cd; color: #9a6b00; padding: 8px;
+            border-radius: 6px; margin-top: 8px; font-weight: 500;
+        }
+
+        .warning-box {
+            margin: 0 20px 10px; padding: 12px; border-radius: 10px;
+            font-size: 13px; display: none; text-align: center; font-weight: 500;
+        }
+        .warning-box.show { display: block; animation: shake 0.5s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .warning-box.hypo { background: #fadbd8; color: #922b21; border: 1px solid var(--danger); }
+        .warning-box.hyper { background: #fdebd0; color: #9a6b00; border: 1px solid var(--warning); }
+
+        .history-section { padding: 0 20px; }
+        .history-title { 
+            font-size: 16px; font-weight: bold; margin: 20px 0 10px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .btn-clear { font-size: 12px; color: var(--danger); background: none; border: none; cursor: pointer; padding: 5px; }
+        .history-list { list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto; }
+        .history-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid #eee; font-size: 13px; position: relative;
+        }
+        .history-item:hover { background: #f8f9fa; }
+        .history-left { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .history-time { font-size: 11px; color: var(--gray); }
+        .history-products { 
+            font-size: 11px; color: var(--primary); font-style: italic;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            max-width: 200px; display: inline-block; vertical-align: middle;
+        }
+        .history-right { text-align: right; flex-shrink: 0; }
+        .history-he { font-weight: bold; color: var(--primary); }
+        .history-ins { font-size: 12px; color: var(--danger); }
+        .status-badge {
+            padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; display: inline-block;
+        }
+        .status-ok { background: #d5f5e3; color: #27ae60; }
+        .status-high { background: #fdebd0; color: #f39c12; }
+        .status-low { background: #fadbd8; color: #e74c3c; }
+        .history-actions { display: flex; gap: 5px; margin-left: 10px; }
+        .btn-history-action {
+            padding: 4px 8px; border: none; border-radius: 5px;
+            font-size: 11px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-edit { background: #3498db; color: white; }
+        .btn-edit:hover { background: #2980b9; }
+        .btn-delete { background: #e74c3c; color: white; }
+        .btn-delete:hover { background: #c0392b; }
+
+        .postmeal-section {
+            background: linear-gradient(135deg, #e8f4fd, #d5e8f7);
+            border-radius: 15px; padding: 15px; margin: 15px 20px; border: 2px solid var(--info);
+        }
+        .postmeal-title {
+            font-weight: bold; color: var(--text); margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .postmeal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .postmeal-select {
+            width: 100%; padding: 10px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 14px; background: white;
+        }
+        .postmeal-input {
+            width: 100%; padding: 10px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 14px;
+        }
+        .btn-save-postmeal {
+            width: 100%; padding: 12px; background: var(--info); color: white;
+            border: none; border-radius: 10px; font-size: 15px; font-weight: bold;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-save-postmeal:hover { background: #2980b9; }
+        .postmeal-result {
+            margin-top: 12px; padding: 15px; background: white;
+            border-radius: 8px; text-align: center; display: none;
+        }
+        .postmeal-result.show { display: block; animation: slideIn 0.3s; }
+        .postmeal-status { font-weight: bold; font-size: 18px; margin: 5px 0; }
+        .postmeal-ok { color: var(--primary); }
+        .postmeal-high { color: var(--warning); }
+        .postmeal-low { color: var(--danger); }
+        .postmeal-advice {
+            margin-top: 10px; padding: 10px; background: #f8f9fa;
+            border-radius: 8px; font-size: 13px; line-height: 1.5; text-align: left;
+        }
+        .postmeal-advice h4 { margin: 0 0 8px; font-size: 14px; color: var(--text); }
+        .postmeal-advice ul { margin: 0; padding-left: 20px; }
+        .postmeal-advice li { margin: 5px 0; }
+        .advice-carbs {
+            background: #fff3cd; border-left: 4px solid var(--warning);
+            padding: 10px; margin: 10px 0; border-radius: 0 8px 8px 0;
+        }
+        .advice-insulin {
+            background: #fdedec; border-left: 4px solid var(--danger);
+            padding: 10px; margin: 10px 0; border-radius: 0 8px 8px 0;
+        }
+        .advice-ok {
+            background: #d5f5e3; border-left: 4px solid var(--primary);
+            padding: 10px; margin: 10px 0; border-radius: 0 8px 8px 0;
+        }
+        .postmeal-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-postmeal-action {
+            flex: 1; padding: 10px; border: none; border-radius: 8px;
+            font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-close { background: var(--light-gray); color: var(--text); }
+        .btn-close:hover { background: #bdc3c7; }
+        .btn-send { background: var(--info); color: white; }
+        .btn-send:hover { background: #2980b9; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); display: none;
+            justify-content: center; align-items: center; z-index: 1000;
+            animation: fadeIn 0.2s;
+        }
+        .modal {
+            background: white; padding: 25px; border-radius: 20px;
+            width: 90%; max-width: 350px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .modal h2 { margin: 0 0 20px; font-size: 20px; color: var(--text); text-align: center; }
+        .modal label { font-size: 13px; color: var(--gray); margin-bottom: 5px; }
+        .modal input {
+            width: 100%; padding: 12px; margin-bottom: 15px;
+            border: 1px solid #ddd; border-radius: 10px; font-size: 16px;
+        }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 10px;
+            font-size: 15px; font-weight: bold; cursor: pointer;
+        }
+        .modal-btn.cancel { background: #ecf0f1; color: var(--text); }
+        .modal-btn.save { background: var(--primary); color: white; }
+        
+        .products-manage {
+            margin-top: 10px; padding: 10px; background: #f8f9fa;
+            border-radius: 10px; font-size: 12px;
+        }
+        .products-manage summary { cursor: pointer; color: var(--primary); font-weight: bold; padding: 5px; }
+        .custom-product-list { list-style: none; padding: 10px; margin: 0; max-height: 150px; overflow-y: auto; }
+        .custom-product-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px; background: white; margin-bottom: 5px;
+            border-radius: 6px; font-size: 13px;
+        }
+        .btn-delete {
+            background: #fadbd8; color: var(--danger); border: none;
+            padding: 4px 8px; border-radius: 5px; cursor: pointer; font-size: 11px;
+        }
+        .btn-delete:hover { background: var(--danger); color: white; }
+
+        .total-summary {
+            margin: 10px 20px; padding: 15px;
+            background: linear-gradient(135deg, #e8f8f5, #d5f5e3);
+            border-radius: 12px; display: flex; justify-content: space-around; font-weight: bold;
+        }
+        .total-summary div { text-align: center; }
+        .total-summary span { display: block; font-size: 18px; }
+        .total-summary small { font-size: 11px; color: var(--gray); font-weight: normal; }
+        
+        .chart-section { padding: 10px 20px 20px; }
+        .chart-filters { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .chart-filter-btn {
+            padding: 8px 15px; background: var(--light-gray); border: none;
+            border-radius: 20px; font-size: 13px; cursor: pointer; transition: all 0.2s;
+        }
+        .chart-filter-btn.active { background: var(--primary); color: white; }
+        .chart-container {
+            background: white; border-radius: 15px; padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;
+        }
+        .chart-title {
+            font-weight: bold; margin-bottom: 10px; color: var(--text);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .chart-wrapper { position: relative; height: 250px; }
+        .chart-stats {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px;
+        }
+        .stat-card {
+            background: var(--light-gray); padding: 12px; border-radius: 10px; text-align: center;
+        }
+        .stat-value { font-size: 20px; font-weight: bold; color: var(--primary); }
+        .stat-label { font-size: 11px; color: var(--gray); margin-top: 3px; }
+        .chart-empty { text-align: center; color: var(--gray); padding: 40px 20px; }
+        .chart-empty-icon { font-size: 40px; margin-bottom: 10px; }
+        
+        .debug-box {
+            background: #fdedec; border: 2px solid var(--danger);
+            color: var(--danger); padding: 15px; margin: 20px;
+            border-radius: 10px; display: none; font-size: 13px;
+        }
+        .debug-box.show { display: block; }
+        .btn-retry {
+            background: var(--danger); color: white; border: none;
+            padding: 8px 15px; border-radius: 5px; cursor: pointer;
+            margin-top: 10px; width: 100%;
+        }
+
+        .debug-console-container { position: fixed; bottom: 10px; right: 10px; z-index: 9999; }
+        .debug-console-btn {
+            padding: 8px 12px; background: #34495e; color: white;
+            border: none; border-radius: 8px; cursor: pointer; font-size: 12px;
+        }
+        .debug-console-panel {
+            display: none; position: absolute; bottom: 40px; right: 0;
+            width: 300px; max-height: 250px; overflow: auto;
+            background: #2c3e50; color: #ecf0f1; padding: 10px;
+            border-radius: 8px; font-size: 11px; font-family: monospace;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .debug-console-panel.show { display: block; }
+        .debug-console-panel div { margin: 3px 0; }
+        .debug-console-panel .highlight { color: #f39c12; }
+        .debug-console-panel .success { color: #27ae60; }
+        .debug-console-panel .error { color: #e74c3c; }
+
+        .loading {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.9); display: flex;
+            justify-content: center; align-items: center; z-index: 9999;
+        }
+        .loading.hidden { display: none; }
+        .loading-spinner {
+            width: 40px; height: 40px; border: 4px solid var(--light-gray);
+            border-top-color: var(--primary); border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .data-controls { display: flex; gap: 10px; margin: 15px 20px; }
+        .btn-data {
+            flex: 1; padding: 10px; background: var(--light-gray); color: var(--text);
+            border: none; border-radius: 10px; font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-hover:hover { background: #bdc3c7; }
+        .btn-data.primary { background: var(--primary); color: white; }
+        .btn-data.primary:hover { background: var(--primary-dark); }
+
+        .edit-modal-textarea {
+            width: 100%; padding: 12px; border: 1px solid #ddd;
+            border-radius: 10px; font-size: 14px; font-family: inherit;
+            resize: vertical; min-height: 100px;
+        }
+
+        .coeff-warning {
+            font-size: 11px; color: #922b21; margin-top: 5px;
+            padding: 8px; background: #fadbd8; border-radius: 6px; display: none;
+        }
+        .coeff-warning.show { display: block; }
+
+        .tir-stats {
+            background: linear-gradient(135deg, #e8f8f5, #d5f5e3);
+            border-radius: 12px; padding: 15px; margin: 15px 20px;
+        }
+        .tir-stats h4 { margin: 0 0 10px; font-size: 14px; color: var(--text); text-align: center; }
+        .tir-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .tir-item { text-align: center; padding: 10px; background: white; border-radius: 8px; }
+        .tir-value { font-size: 18px; font-weight: bold; color: var(--primary); }
+        .tir-label { font-size: 10px; color: var(--gray); margin-top: 3px; }
+        .tir-good { color: #27ae60; } .tir-warning { color: #f39c12; } .tir-bad { color: #e74c3c; }
+        
+        .iob-display {
+            background: linear-gradient(135deg, #e8f8f5, #d5f5e3);
+            border: 2px solid var(--primary); color: var(--primary-dark);
+            padding: 12px; border-radius: 10px; margin: 15px 0; text-align: center;
+            display: none; animation: slideIn 0.3s ease;
+        }
+        .iob-display.show { display: block; }
+        .iob-display strong { font-size: 20px; color: var(--danger); }
+        .iob-subtext { font-size: 11px; color: var(--gray); margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="loadingScreen" class="loading"><div class="loading-spinner"></div></div>
+<div id="timerNotification" class="timer-notification">⏰ Прошло 2 часа! Пора измерить сахар!</div>
+
+<div class="app-container">
+    <div class="header">
+        <h1>🩸 Диабет-Помощник v7.3 Pro</h1>
+        <p>Исправленные графики + стабильность</p>
+        <div class="header-actions">
+             <a href="./info.html" class="btn-header">📚 База знаний</a>
+            <button class="btn-header" onclick="exportData()">💾 Экспорт</button>
+            <button class="btn-header" onclick="importData()">📥 Импорт</button>
+            <button class="btn-header" onclick="shareData()">📤 Поделиться</button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('calculator')">🧮 Калькулятор</button>
+        <button class="tab-btn" onclick="switchTab('postmeal')">🍽️ После еды</button>
+        <button class="tab-btn" onclick="switchTab('charts')">📊 Графики</button>
+    </div>
+
+    <div id="tab-calculator" class="tab-content active">
+        <div class="settings-grid">
+            <div class="setting-item"><label>Цель (мин)</label><input type="number" id="targetMin" value="5.0" step="0.1" onchange="validateCoefficients()"></div>
+            <div class="setting-item"><label>Цель (макс)</label><input type="number" id="targetMax" value="7.0" step="0.1" onchange="validateCoefficients()"></div>
+            <div class="setting-item"><label>Коэф. на ХЕ</label><input type="number" id="carbFactor" value="1.0" step="0.1" onchange="validateCoefficients()"></div>
+            <div class="setting-item"><label>Чувствит. к инсулину</label><input type="number" id="sensitivity" value="2.0" step="0.1" onchange="validateCoefficients()"></div>
+            <div class="setting-item highlight"><label>🔒 Порог коррекции</label><input type="number" id="correctionThreshold" value="12.0" step="0.1" onchange="validateCoefficients()"></div>
+            <div class="setting-item info"><label>⏳ Длит. инсулина (ч)</label><input type="number" id="insulinDuration" value="4" step="0.5" onchange="saveSettings()"></div>
+            <div class="setting-item warning"><label>💊 Ручной ввод IOB</label><input type="number" id="manualIOB" value="0" step="0.1" placeholder="0"></div>
+        </div>
+        <div id="coeffWarning" class="coeff-warning"></div>
+
+        <div class="main-form">
+            <label>🔍 Поиск продукта</label>
+            <div class="product-search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="product-search" id="productSearch" placeholder="Начните вводить название..." oninput="filterProducts()">
+            </div>
+            
+            <label>Выберите продукт</label>
+            <div class="product-selector">
+                <select id="productSelect" onchange="autoFillWeight()"><option value="">Загрузка...</option></select>
+                <button class="btn-add-product" onclick="openModal()">+</button>
+            </div>
+            <div id="debugBox" class="debug-box"><strong>⚠️ Ошибка!</strong><p id="debugMessage"></p><button class="btn-retry" onclick="forceRenderProductSelect()">🔄 Обновить</button></div>
+            <details class="products-manage"><summary>📝 Мои продукты</summary><ul id="customProductList" class="custom-product-list"></ul></details>
+
+            <label style="margin-top:15px">Вес порции (г)</label>
+            <input type="number" id="weightInput" placeholder="Например: 150">
+
+            <div class="cart-section">
+                <div class="cart-header"><div class="cart-title">🛒 Приём пищи <span class="cart-count" id="cartCount">0</span></div><button class="btn-clear-cart" onclick="clearCart()">Очистить</button></div>
+                <ul id="cartList" class="cart-list"><li class="cart-empty">Нет продуктов</li></ul>
+                <div class="cart-summary" id="cartSummary" style="display:none">
+                    <div class="cart-summary-item">🍞 <span id="cartTotalHE">0</span> ХЕ</div>
+                    <div class="cart-summary-item">🌾 <span id="cartTotalCarbs">0</span>г</div>
+                    <div class="cart-summary-item">💉 <span class="insulin-value" id="cartTotalInsulin">0</span> ед.</div>
+                </div>
+            </div>
+            
+            <div class="iob-display" id="iobDisplay">
+                💊 Активный инсулин (расчёт): <strong id="iobValue">0.0</strong> ед.
+                <div class="iob-subtext">На основе истории за последние часы</div>
+            </div>
+            
+            <button class="btn-add-to-cart" onclick="addToCart()">➕ Добавить</button>
+            <label>Текущий сахар (ммоль/л)</label>
+            <input type="number" id="currentSugar" placeholder="Напр: 8.5" step="0.1">
+            <button class="btn-calc" id="btnCalc" onclick="calculateFull()" disabled>💉 Рассчитать и запустить таймер</button>
+        </div>
+
+        <div id="timerSection" class="timer-section">
+            <div style="text-align:center;font-weight:bold;margin-bottom:10px">⏱️ Таймер 2 часа</div>
+            <div class="timer-display" id="timerDisplay">02:00:00</div>
+            <div style="text-align:center;font-size:12px;color:var(--gray)">Запустите таймер после еды</div>
+            <div class="timer-buttons">
+                <button class="btn-timer btn-timer-start" onclick="toggleTimer()" id="btnTimerStart">▶️ Старт</button>
+                <button class="btn-timer btn-timer-reset" onclick="resetTimer()">🔄 Сброс</button>
+            </div>
+        </div>
+
+        <div id="warningBox" class="warning-box"></div>
+        <div id="resultCard" class="result-card">
+            <div class="sub-text">🍞 ХЕ:</div><div class="big-number text-green"><span id="resHE">0</span></div>
+            <div style="margin:15px 0;border-top:1px dashed #ccc;padding-top:15px"><div class="sub-text">На еду:</div><div style="font-size:24px"><span id="resFoodInsulin">0</span> ед.</div></div>
+            <div id="correctionBlock"><div class="sub-text">Коррекция:</div><div style="font-size:24px" id="resCorrection">±0 ед.</div></div>
+            <hr style="border:0;border-top:2px solid #eee;margin:15px 0">
+            <div class="sub-text">💉 ИТОГО:</div><div class="big-number text-red"><span id="resTotalInsulin">0</span> ед.</div>
+            <div id="correctionInfo" class="correction-info"></div>
+        </div>
+
+        <div class="history-section">
+            <div class="history-title">📋 История <button class="btn-clear" onclick="clearHistory()">Очистить всё</button></div>
+            <ul id="historyList" class="history-list"></ul>
+            <div class="total-summary"><div><span id="totalHe">0</span><small>ХЕ</small></div><div><span id="totalIns">0</span><small>ед.</small></div><div><span id="totalRecords">0</span><small>записей</small></div></div>
+        </div>
+
+        <div class="tir-stats">
+            <h4>📊 Показатели контроля (TIR)</h4>
+            <div class="tir-grid">
+                <div class="tir-item"><div class="tir-value" id="tirValue">-</div><div class="tir-label">В цели %</div></div>
+                <div class="tir-item"><div class="tir-value" id="avgGlucose">-</div><div class="tir-label">Средний сахар</div></div>
+                <div class="tir-item"><div class="tir-value" id="glycemicVar">-</div><div class="tir-label">Вариативность</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-postmeal" class="tab-content">
+        <div class="postmeal-section">
+            <div class="postmeal-title">🍽️ Записать сахар после еды</div>
+            <label>Привязать к приёму пищи:</label>
+            <select id="postmealMealSelect" class="postmeal-select"><option value="">— Не привязывать —</option></select>
+            <div class="postmeal-grid">
+                <div><label>Время после еды:</label><select id="postmealTime" class="postmeal-select"><option value="1">1 час</option><option value="2" selected>2 часа</option><option value="3">3 часа</option></select></div>
+                <div><label>Сахар (ммоль/л):</label><input type="number" id="postmealSugar" class="postmeal-input" placeholder="Напр: 8.2" step="0.1"></div>
+            </div>
+            <button class="btn-save-postmeal" onclick="savePostmealReading()">💾 Сохранить</button>
+            <div id="postmealResult" class="postmeal-result">
+                <div style="font-size:24px;margin-bottom:10px">✅ Записано!</div>
+                <div id="postmealStatus" class="postmeal-status"></div>
+                <div id="postmealAdvice" class="postmeal-advice"></div>
+                <div class="postmeal-actions">
+                    <button class="btn-postmeal-action btn-close" onclick="closePostmealResult()">✕ Закрыть</button>
+                    <button class="btn-postmeal-action btn-send" onclick="sendPostmealResult()">📤 Отправить</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chart-section">
+            <div class="chart-container">
+                <div class="chart-title">📈 Постпрандиальный сахар</div>
+                <div class="chart-wrapper"><canvas id="postmealChart"></canvas></div>
+                <div class="chart-stats">
+                    <div class="stat-card"><div class="stat-value" id="statPostAvg">-</div><div class="stat-label">Средний</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statPostInTarget">-</div><div class="stat-label">В цели %</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statPostCount">-</div><div class="stat-label">Записей</div></div>
+                </div>
+            </div>
+            <div id="postmealChartEmpty" class="chart-empty" style="display:none">
+                <div class="chart-empty-icon">📭</div>
+                <div>Нет записей после еды</div>
+                <div style="font-size:12px;margin-top:5px">Нажмите "Сохранить" на форме выше</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-charts" class="tab-content">
+        <div class="chart-section">
+            <div class="chart-filters">
+                <button class="chart-filter-btn active" onclick="setChartPeriod('day')">Сегодня</button>
+                <button class="chart-filter-btn" onclick="setChartPeriod('3days')">3 дня</button>
+                <button class="chart-filter-btn" onclick="setChartPeriod('week')">Неделя</button>
+                <button class="chart-filter-btn" onclick="setChartPeriod('month')">Месяц</button>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">📈 Сахар + Углеводы</div>
+                <div class="chart-wrapper"><canvas id="mainChart"></canvas></div>
+                <div class="chart-stats">
+                    <div class="stat-card"><div class="stat-value" id="statAvgSugar">-</div><div class="stat-label">Средний сахар</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statTotalHe">-</div><div class="stat-label">Всего ХЕ</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statCount">-</div><div class="stat-label">Записей</div></div>
+                </div>
+            </div>
+            <div id="chartEmpty" class="chart-empty" style="display:none"><div class="chart-empty-icon">📭</div><div>Нет данных</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- Product Modal -->
+<div id="productModal" class="modal-overlay">
+    <div class="modal">
+        <h2>🥗 Новый продукт</h2>
+        <label>Название (можно с весом, например: Яблоко 150)</label><input type="text" id="newProductName" placeholder="Борщ">
+        <label>Углеводы на 100г</label><input type="number" id="newProductCarbs" placeholder="8" step="0.1">
+        <div class="modal-buttons">
+            <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
+            <button class="modal-btn save" onclick="saveCustomProduct()">Сохранить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit History Modal -->
+<div id="editModal" class="modal-overlay">
+    <div class="modal">
+        <h2>✏️ Редактировать запись</h2>
+        <label>Сахар (ммоль/л)</label><input type="number" id="editSugar" step="0.1">
+        <label>ХЕ</label><input type="number" id="editHE" step="0.1">
+        <label>Инсулин (ед.)</label><input type="number" id="editInsulin" step="0.1">
+        <label>Комментарий</label><textarea id="editComment" class="edit-modal-textarea" placeholder="Дополнительная информация..."></textarea>
+        <div class="modal-buttons">
+            <button class="modal-btn cancel" onclick="closeEditModal()">Отмена</button>
+            <button class="modal-btn save" onclick="saveEdit()">Сохранить</button>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div id="importModal" class="modal-overlay">
+    <div class="modal">
+        <h2>📥 Импорт данных</h2>
+        <label>Выберите JSON файл</label><input type="file" id="importFile" accept=".json">
+        <div class="modal-buttons">
+            <button class="modal-btn cancel" onclick="closeImportModal()">Отмена</button>
+            <button class="modal-btn save" onclick="processImport()">Импорт</button>
+        </div>
+    </div>
+</div>
+
+<input type="file" id="exportFileInput" style="display:none" accept=".json" onchange="processExportFile(this)">
+<div class="debug-console-container"><button class="debug-console-btn" onclick="toggleDebug()">🔍 Debug</button><div id="debugConsole" class="debug-console-panel"></div></div>
+
+<script>
+    // === Глобальные переменные ===
+    let cart = [], historyData = [], filteredProducts = [];
+    let mainChart = null, postmealChart = null, chartsReady = false;
+    let currentChartPeriod = 'day', chartRenderDebounce = null;
+    let timerSeconds = 7200, timerRunning = false, timerStartTime = null, timerRAF = null;
+    let appInitialized = false, editingRecordIndex = null, lastPostmealResult = null;
+
+    const defaultProducts = [
+        {name:"карекция на высокий сахар1",carbs:0},{name:"Хлеб белый",carbs:50},{name:"Хлеб черный",carbs:40},{name:"Яблоко",carbs:10},
+        {name:"Банан",carbs:21},{name:"Гречка вареная",carbs:25},{name:"Рис вареный",carbs:28},
+        {name:"Макароны",carbs:20},{name:"Картофель",carbs:16},{name:"Молоко",carbs:5},
+        {name:"Творог",carbs:3},{name:"Курица/Мясо",carbs:0},{name:"Рыба",carbs:0},
+        {name:"Огурцы",carbs:3},{name:"Помидоры",carbs:4},{name:"Сахар",carbs:100},
+        {name:"Мёд",carbs:80},{name:"Шоколад",carbs:55},{name:"Печенье",carbs:65},
+        {name:"Торт",carbs:50},{name:"Мороженое",carbs:25},{name:"Сок",carbs:12},
+        {name:"Кола",carbs:11},{name:"Кофе без сахара",carbs:0},{name:"Чай",carbs:0}
+    ];
+
+    // === Инициализация ===
+    document.addEventListener('DOMContentLoaded', async () => {
+        console.log('🚀 App initializing v7.3 Pro...');
+        try {
+            await Promise.all([loadHistoryFast(), loadSettings(), loadCustomProducts()]);
+            renderProductSelect(); renderCustomProductList(); renderCart();
+            renderPostmealMealSelect(); loadTimerState(); updateTIRStats(); updateIOBDisplay();
+            
+            setTimeout(() => {
+                if (typeof Chart !== 'undefined') initAllCharts();
+            }, 200);
+            
+            setTimeout(() => {
+                document.getElementById('loadingScreen')?.classList.add('hidden');
+                appInitialized = true;
+                console.log('✅ App ready');
+            }, 400);
+        } catch(e) {
+            console.error('❌ Init error:', e);
+            document.getElementById('loadingScreen')?.classList.add('hidden');
+        }
+    });
+
+    // === Загрузка истории ===
+    async function loadHistoryFast() {
+        try {
+            const stored = localStorage.getItem('diabHistory');
+            historyData = stored ? JSON.parse(stored) : [];
+            renderHistoryFast();
+        } catch(e) { historyData = []; }
+    }
+
+    function renderHistoryFast() {
+        const list = document.getElementById('historyList');
+        if (!list) return;
+        if (historyData.length === 0) {
+            list.innerHTML = '<li style="padding:20px;color:#999;text-align:center">История пуста</li>';
+            updateTotalSummary(0, 0, 0); return;
+        }
+        let th = 0, ti = 0, fragment = document.createDocumentFragment();
+        for (let i = 0; i < Math.min(historyData.length, 20); i++) {
+            const it = historyData[i];
+            th += parseFloat(it.he) || 0; ti += parseFloat(it.totalInsulin) || 0;
+            const li = document.createElement('li'); li.className = 'history-item';
+            const status = it.sugarStatus || 'ok', icon = status === 'low' ? '🔴' : status === 'high' ? '🟡' : '🟢';
+            li.innerHTML = `<div class="history-left"><strong>${it.productCount || 1} продуктов</strong><span class="history-products" title="${it.products || it.name || '—'}">${it.products || it.name || '—'}</span><span class="history-time">${it.time || new Date(it.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})} • ${it.sugar || '-'} ммоль/л <span class="status-badge status-${status}">${icon}</span>${it.correctionApplied ? '💉' : ''}${it.type === 'postmeal' ? ' 🍽️' : ''}</span></div><div class="history-right"><div class="history-he">${it.he || '-'} ХЕ</div><div class="history-ins">💉 ${it.totalInsulin || '-'} ед.</div></div><div class="history-actions"><button class="btn-history-action btn-edit" onclick="openEditModal(${i})">✏️</button><button class="btn-history-action btn-delete" onclick="deleteHistoryRecord(${i})">🗑️</button></div>`;
+            fragment.appendChild(li);
+        }
+        list.innerHTML = ''; list.appendChild(fragment);
+        updateTotalSummary(th, ti, Math.min(historyData.length, 20));
+    }
+
+    // === Вкладки ===
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        if (tab === 'calculator') {
+            document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+            document.getElementById('tab-calculator').classList.add('active');
+            updateIOBDisplay();
+        } else if (tab === 'postmeal') {
+            document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+            document.getElementById('tab-postmeal').classList.add('active');
+            renderPostmealMealSelect();
+            requestAnimationFrame(() => renderPostmealChart());
+        } else if (tab === 'charts') {
+            document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
+            document.getElementById('tab-charts').classList.add('active');
+            requestAnimationFrame(() => renderChart());
+        }
+    }
+
+    // === Диагностика ===
+    function showDebugError(msg) {
+        const el = document.getElementById('debugMessage');
+        if (el) el.innerText = msg;
+        const box = document.getElementById('debugBox');
+        if (box) box.classList.add('show');
+    }
+    function hideDebugError() {
+        const box = document.getElementById('debugBox');
+        if (box) box.classList.remove('show');
+    }
+    function forceRenderProductSelect() {
+        try { renderProductSelect(); hideDebugError(); alert('✅ Список обновлён!'); }
+        catch(e) { showDebugError(e.message); }
+    }
+    function toggleDebug() {
+        const panel = document.getElementById('debugConsole');
+        if (!panel) return;
+        panel.classList.toggle('show');
+        if (panel.classList.contains('show')) {
+            const iob = calculateIOB();
+            panel.innerHTML = `<div class="highlight"><strong>📊 Статистика:</strong></div><div>Записей: <span class="success">${historyData.length}</span></div><div>IOB: <span class="success">${iob.toFixed(1)} ед.</span></div>`;
+        }
+    }
+
+    // === Валидация и настройки ===
+    function validateCoefficients() {
+        const warning = document.getElementById('coeffWarning');
+        if (!warning) return;
+        const carbFactor = parseFloat(document.getElementById('carbFactor').value);
+        const sensitivity = parseFloat(document.getElementById('sensitivity').value);
+        const targetMin = parseFloat(document.getElementById('targetMin').value);
+        const targetMax = parseFloat(document.getElementById('targetMax').value);
+        let warnings = [];
+        if (carbFactor < 0.5 || carbFactor > 3.0) warnings.push('⚠️ Коэффициент на ХЕ вне диапазона (0.5-3.0)');
+        if (sensitivity < 0.5 || sensitivity > 5.0) warnings.push('⚠️ Чувствительность вне диапазона (0.5-5.0)');
+        if (targetMax - targetMin < 1.0) warnings.push('⚠️ Слишком узкий целевой диапазон (<1 ммоль/л)');
+        if (targetMin < 3.5 || targetMax > 10) warnings.push('⚠️ Целевой диапазон вне безопасных пределов');
+        if (warnings.length > 0) { warning.innerHTML = warnings.join('<br>'); warning.classList.add('show'); }
+        else warning.classList.remove('show');
+        saveSettings();
+    }
+    function saveSettings() {
+        const s = { targetMin: document.getElementById('targetMin').value, targetMax: document.getElementById('targetMax').value, carbFactor: document.getElementById('carbFactor').value, sensitivity: document.getElementById('sensitivity').value, correctionThreshold: document.getElementById('correctionThreshold').value, insulinDuration: document.getElementById('insulinDuration').value };
+        localStorage.setItem('diabSettings', JSON.stringify(s));
+    }
+    function loadSettings() {
+        try {
+            const s = JSON.parse(localStorage.getItem('diabSettings'));
+            if (s) {
+                document.getElementById('targetMin').value = s.targetMin || 5.0;
+                document.getElementById('targetMax').value = s.targetMax || 7.0;
+                document.getElementById('carbFactor').value = s.carbFactor || 1.0;
+                document.getElementById('sensitivity').value = s.sensitivity || 2.0;
+                document.getElementById('correctionThreshold').value = s.correctionThreshold || 12.0;
+                document.getElementById('insulinDuration').value = s.insulinDuration || 4.0;
+            }
+        } catch(e) {}
+        document.querySelectorAll('.settings-grid input').forEach(i => i.addEventListener('change', saveSettings));
+    }
+
+    // === Продукты ===
+    function getCustomProducts() { try { return JSON.parse(localStorage.getItem('customProducts')) || []; } catch(e) { return []; } }
+    function saveCustomProducts(p) { localStorage.setItem('customProducts', JSON.stringify(p)); }
+    function renderProductSelect(searchTerm = '') {
+        const sel = document.getElementById('productSelect');
+        if (!sel) return;
+        const allProducts = [...defaultProducts, ...getCustomProducts()];
+        filteredProducts = searchTerm ? allProducts.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())) : allProducts;
+        sel.innerHTML = '';
+        if (filteredProducts.length === 0) { const o = document.createElement('option'); o.textContent = 'Ничего не найдено'; o.disabled = true; sel.appendChild(o); return; }
+        const og1 = document.createElement('optgroup'); og1.label = '📚 Продукты';
+        filteredProducts.forEach(p => { const o = document.createElement('option'); o.value = p.carbs; o.textContent = `${p.name} (${p.carbs}г)`; o.dataset.name = p.name; og1.appendChild(o); });
+        sel.appendChild(og1); hideDebugError();
+    }
+    function filterProducts() { renderProductSelect(document.getElementById('productSearch').value); }
+    function autoFillWeight() {
+        const sel = document.getElementById('productSelect');
+        if (!sel || !sel.options[sel.selectedIndex]) return;
+        const name = sel.options[sel.selectedIndex].dataset.name || sel.options[sel.selectedIndex].text.split('(')[0].trim();
+        const match = name.match(/(\d+)/);
+        if (match && match[1]) { const w = parseInt(match[1]); if (w > 0 && w <= 5000) document.getElementById('weightInput').value = w; }
+    }
+    function renderCustomProductList() {
+        const list = document.getElementById('customProductList');
+        if (!list) return;
+        const cp = getCustomProducts();
+        if (cp.length === 0) { list.innerHTML = '<li style="color:#999;padding:5px">Нет добавленных продуктов</li>'; return; }
+        list.innerHTML = '';
+        cp.forEach((p, i) => { const li = document.createElement('li'); li.className = 'custom-product-item'; li.innerHTML = `<span><strong>${p.name}</strong> — ${p.carbs}г/100г</span><button class="btn-delete" onclick="deleteCustomProduct(${i})">✕</button>`; list.appendChild(li); });
+    }
+    function openModal() { document.getElementById('productModal').style.display = 'flex'; document.getElementById('newProductName').value = ''; document.getElementById('newProductCarbs').value = ''; document.getElementById('newProductName').focus(); }
+    function closeModal() { document.getElementById('productModal').style.display = 'none'; }
+    function saveCustomProduct() {
+        const name = document.getElementById('newProductName').value.trim(), carbs = parseFloat(document.getElementById('newProductCarbs').value);
+        if (!name) { alert('Введите название продукта!'); return; }
+        if (isNaN(carbs) || carbs < 0) { alert('Введите корректное значение углеводов!'); return; }
+        const cp = getCustomProducts(); cp.push({name, carbs}); saveCustomProducts(cp); renderProductSelect(); renderCustomProductList(); closeModal();
+    }
+    function deleteCustomProduct(i) { if (!confirm('Удалить этот продукт?')) return; const cp = getCustomProducts(); cp.splice(i, 1); saveCustomProducts(cp); renderProductSelect(); renderCustomProductList(); }
+    document.getElementById('productModal')?.addEventListener('click', e => { if (e.target.id === 'productModal') closeModal(); });
+
+    // === Корзина ===
+    function addToCart() {
+        const sel = document.getElementById('productSelect');
+        if (!sel || sel.options.length === 0 || filteredProducts.length === 0) { alert('Список продуктов не загружен!'); return; }
+        const opt = sel.options[sel.selectedIndex], carbsPer100 = parseFloat(sel.value), name = opt.dataset.name || opt.text.split('(')[0].trim(), w = parseFloat(document.getElementById('weightInput').value);
+        if (!w || w <= 0 || isNaN(w)) { alert('Введите корректный вес продукта!'); return; }
+        if (isNaN(carbsPer100) || carbsPer100 < 0) { alert('Ошибка в данных продукта!'); return; }
+        const tc = (carbsPer100 * w) / 100, he = tc / 12;
+        cart.push({ id: Date.now() + Math.random(), name, weight: w, carbsPer100, totalCarbs: tc, he });
+        renderCart(); document.getElementById('weightInput').value = '';
+    }
+    function removeFromCart(id) { cart = cart.filter(i => i.id !== id); renderCart(); }
+    function clearCart() { if (cart.length === 0) return; if (confirm('Очистить весь приём пищи?')) { cart = []; renderCart(); } }
+    function renderCart() {
+        const list = document.getElementById('cartList'), sum = document.getElementById('cartSummary'), cnt = document.getElementById('cartCount'), btn = document.getElementById('btnCalc');
+        if (!list || !sum || !cnt || !btn) return;
+        cnt.innerText = cart.length;
+        if (cart.length === 0) { list.innerHTML = '<li class="cart-empty">Нет добавленных продуктов</li>'; sum.style.display = 'none'; btn.disabled = true; return; }
+        list.innerHTML = ''; let tc = 0, th = 0, ti = 0; const carbFactor = parseFloat(document.getElementById('carbFactor').value) || 1.0;
+        cart.forEach(it => { tc += it.totalCarbs; th += it.he; ti += it.he * carbFactor; const li = document.createElement('li'); li.className = 'cart-item'; li.innerHTML = `<div class="cart-item-info"><div class="cart-item-name" title="${it.name}">${it.name}</div><div class="cart-item-details">${it.weight}г • ${it.totalCarbs.toFixed(1)}г угл. • ${it.he.toFixed(2)} ХЕ</div></div><button class="cart-item-remove" onclick="removeFromCart(${it.id})">×</button>`; list.appendChild(li); });
+        document.getElementById('cartTotalCarbs').innerText = tc.toFixed(1); document.getElementById('cartTotalHE').innerText = th.toFixed(2); document.getElementById('cartTotalInsulin').innerText = ti.toFixed(1); sum.style.display = 'flex'; btn.disabled = false;
+    }
+
+    // === IOB ===
+    function calculateIOB() {
+        try {
+            const now = Date.now(), durationHours = parseFloat(document.getElementById('insulinDuration').value) || 4, durationMs = durationHours * 60 * 60 * 1000;
+            let totalIOB = 0;
+            for (let i = 0; i < historyData.length; i++) {
+                const record = historyData[i];
+                if (record.type === 'meal' && record.timestamp && record.totalInsulin) {
+                    const elapsed = now - record.timestamp;
+                    if (elapsed > 0 && elapsed < durationMs) {
+                        const dose = parseFloat(record.totalInsulin) || 0, remaining = dose * (1 - (elapsed / durationMs));
+                        if (remaining > 0) totalIOB += remaining;
+                    }
+                }
+            }
+            return Math.max(0, Math.round(totalIOB * 10) / 10);
+        } catch(e) { return 0; }
+    }
+    function updateIOBDisplay() {
+        try {
+            const calculatedIOB = calculateIOB(), manualIOB = parseFloat(document.getElementById('manualIOB').value) || 0, totalIOB = calculatedIOB + manualIOB;
+            const display = document.getElementById('iobDisplay'), value = document.getElementById('iobValue');
+            if (!display || !value) return totalIOB;
+            if (totalIOB > 0.1) { display.classList.add('show'); value.innerText = totalIOB.toFixed(1); }
+            else display.classList.remove('show');
+            return totalIOB;
+        } catch(e) { return 0; }
+    }
+
+    // === Расчет ===
+    function calculateFull() {
+        saveSettings();
+        if (cart.length === 0) { alert('Добавьте хотя бы один продукт!'); return; }
+        const cs = parseFloat(document.getElementById('currentSugar').value), tMin = parseFloat(document.getElementById('targetMin').value), tMax = parseFloat(document.getElementById('targetMax').value), cf = parseFloat(document.getElementById('carbFactor').value), sens = parseFloat(document.getElementById('sensitivity').value), thr = parseFloat(document.getElementById('correctionThreshold').value), activeIns = updateIOBDisplay();
+        if (!cs || cs <= 0 || isNaN(cs)) { alert('Введите корректный текущий сахар!'); return; }
+        if (!sens || sens <= 0 || isNaN(sens)) { alert('Проверьте коэффициент чувствительности!'); return; }
+        let tc = 0, th = 0, pn = [];
+        cart.forEach(i => { tc += i.totalCarbs; th += i.he; pn.push(`${i.name} (${i.weight}г)`); });
+        const fi = th * cf; let ci = 0, ca = false, cr = '';
+        if (cs >= thr) { const ta = (tMin + tMax) / 2, sd = cs - ta; ci = Math.round((sd / sens) * 2) / 2; ca = true; cr = `Сахар ${cs} ≥ ${thr} ммоль/л`; }
+        else cr = `Сахар ${cs} < ${thr} ммоль/л (порог)`;
+        let ti = fi + ci - activeIns; if (ti < 0) ti = 0; ti = Math.round(ti * 10) / 10;
+        let ss = 'ok', wm = '';
+        if (cs < tMin) { ss = 'low'; wm = '⚠️ ГИПОГЛИКЕМИЯ! Съешьте 15г быстрых углеводов.'; }
+        else if (cs >= thr) { ss = 'high'; wm = cs > 15 ? '⚠️ Сахар >15 ммоль/л! Проверьте кетоны.' : '💡 Коррекция применена.'; }
+        else if (cs > tMax) { ss = 'high'; wm = `💡 Сахар выше цели, но ниже порога ${thr}. Коррекция НЕ применена.`; }
+        const rc = document.getElementById('resultCard');
+        if (rc) { rc.className = 'result-card'; if (ss === 'low') rc.classList.add('danger'); else if (ss === 'high') rc.classList.add('warning'); }
+        document.getElementById('resHE').innerText = th.toFixed(2); document.getElementById('resFoodInsulin').innerText = fi.toFixed(1);
+        document.getElementById('resCorrection').innerText = `${ci > 0 ? '+' : ''}${ci.toFixed(1)} ед.`; document.getElementById('resCorrection').className = ci > 0 ? 'text-red' : (ci < 0 ? 'text-green' : 'text-gray');
+        document.getElementById('resTotalInsulin').innerText = ti.toFixed(1);
+        let ch = `<strong>📊 Детали:</strong><br>• Продуктов: ${cart.length}<br>• Углеводов: ${tc.toFixed(1)}г<br>• Цель: ${tMin}-${tMax} ммоль/л<br>• Чувствительность: ${sens} ммоль/л на 1 ед.<br>• Порог коррекции: ${thr} ммоль/л`;
+        if (activeIns > 0) ch += `<br>• Активный инсулин (расчёт): -${activeIns.toFixed(1)} ед.`;
+        if (!ca) ch += `<div class="no-correction">⚠️ Коррекция не применена: ${cr}</div>`;
+        else { const ta = (tMin + tMax) / 2; ch += `<div style="margin-top:8px;padding:8px;background:#d5f5e3;border-radius:6px">✅ Коррекция применена: ${cr}<br>Отклонение от цели: ${(cs - ta >= 0 ? '+' : '') + (cs - ta).toFixed(1)} ммоль/л</div>`; }
+        document.getElementById('correctionInfo').innerHTML = ch;
+        const wb = document.getElementById('warningBox');
+        if (wb) { if (wm) { wb.className = `warning-box show ${ss === 'low' ? 'hypo' : 'hyper'}`; wb.innerText = wm; } else wb.className = 'warning-box'; }
+        if (rc) { rc.style.display = 'block'; rc.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+        const timerSection = document.getElementById('timerSection');
+        if (timerSection) { timerSection.classList.add('show'); timerSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); if (!timerRunning) startTimer(); }
+        addToHistory({ products: pn.join(', '), productCount: cart.length, totalCarbs: tc.toFixed(1), he: th.toFixed(2), sugar: cs, sugarStatus: ss, foodInsulin: fi.toFixed(1), correction: ci.toFixed(1), correctionApplied: ca, totalInsulin: ti.toFixed(1), activeInsulin: activeIns, time: new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}), timestamp: Date.now(), type: 'meal' });
+        updateTIRStats();
+    }
+
+    // === Таймер ===
+    function loadTimerState() { const saved = localStorage.getItem('timerState'); if (saved) { const state = JSON.parse(saved); timerSeconds = state.seconds || 7200; timerRunning = state.running || false; if (timerRunning && state.startTime) { const elapsed = Math.floor((Date.now() - state.startTime) / 1000); timerSeconds = Math.max(0, 7200 - elapsed); } updateTimerDisplay(); if (timerRunning && timerSeconds > 0) startTimer(); } }
+    function saveTimerState() { localStorage.setItem('timerState', JSON.stringify({ seconds: timerSeconds, running: timerRunning, startTime: timerRunning ? timerStartTime : null })); }
+    function updateTimerDisplay() { const hours = Math.floor(timerSeconds / 3600), minutes = Math.floor((timerSeconds % 3600) / 60), seconds = timerSeconds % 60; const display = document.getElementById('timerDisplay'); if (display) display.innerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`; const btn = document.getElementById('btnTimerStart'); if (btn) { btn.innerText = timerRunning ? '⏸️ Пауза' : '▶️ Старт'; btn.className = timerRunning ? 'btn-timer btn-timer-stop' : 'btn-timer btn-timer-start'; } }
+    function toggleTimer() { timerRunning ? pauseTimer() : startTimer(); }
+    function startTimer() { if (timerSeconds <= 0) return; timerRunning = true; timerStartTime = Date.now(); saveTimerState(); updateTimerDisplay(); const tick = () => { if (!timerRunning) return; const elapsed = Math.floor((Date.now() - timerStartTime) / 1000); timerSeconds = Math.max(0, 7200 - elapsed); updateTimerDisplay(); saveTimerState(); if (timerSeconds > 0) timerRAF = requestAnimationFrame(tick); else { timerRunning = false; timerSeconds = 7200; saveTimerState(); showTimerNotification(); updateTimerDisplay(); } }; tick(); }
+    function pauseTimer() { timerRunning = false; if (timerRAF) { cancelAnimationFrame(timerRAF); timerRAF = null; } saveTimerState(); updateTimerDisplay(); }
+    function resetTimer() { pauseTimer(); timerSeconds = 7200; timerStartTime = null; saveTimerState(); updateTimerDisplay(); }
+    function showTimerNotification() { const notification = document.getElementById('timerNotification'); if (notification) { notification.classList.add('show'); if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]); setTimeout(() => notification.classList.remove('show'), 10000); } }
+
+    // === История ===
+    function openEditModal(index) { editingRecordIndex = index; const record = historyData[index]; document.getElementById('editSugar').value = record.sugar || ''; document.getElementById('editHE').value = record.he || ''; document.getElementById('editInsulin').value = record.totalInsulin || ''; document.getElementById('editComment').value = record.comment || ''; document.getElementById('editModal').style.display = 'flex'; }
+    function closeEditModal() { document.getElementById('editModal').style.display = 'none'; editingRecordIndex = null; }
+    function saveEdit() { if (editingRecordIndex === null) return; const record = historyData[editingRecordIndex]; record.sugar = parseFloat(document.getElementById('editSugar').value); record.he = document.getElementById('editHE').value; record.totalInsulin = document.getElementById('editInsulin').value; record.comment = document.getElementById('editComment').value; const tMin = parseFloat(document.getElementById('targetMin').value) || 5, tMax = parseFloat(document.getElementById('targetMax').value) || 7; if (record.sugar < tMin) record.sugarStatus = 'low'; else if (record.sugar > tMax) record.sugarStatus = 'high'; else record.sugarStatus = 'ok'; localStorage.setItem('diabHistory', JSON.stringify(historyData)); renderHistoryFast(); closeEditModal(); updateTIRStats(); alert('✅ Запись обновлена!'); }
+    function deleteHistoryRecord(index) { if (!confirm('Удалить эту запись из истории?')) return; historyData.splice(index, 1); localStorage.setItem('diabHistory', JSON.stringify(historyData)); renderHistoryFast(); updateTIRStats(); }
+    function addToHistory(e) { historyData.unshift(e); if (historyData.length > 100) historyData.pop(); localStorage.setItem('diabHistory', JSON.stringify(historyData)); renderHistoryFast(); renderPostmealMealSelect(); if (appInitialized) { renderChart(); renderPostmealChart(); } updateIOBDisplay(); }
+    function updateTotalSummary(h, i, c) { document.getElementById('totalHe').innerText = (h || 0).toFixed(1); document.getElementById('totalIns').innerText = (i || 0).toFixed(1); document.getElementById('totalRecords').innerText = c || 0; }
+    function clearHistory() { if (confirm('Удалить ВСЮ историю?')) { localStorage.removeItem('diabHistory'); historyData = []; renderHistoryFast(); renderPostmealMealSelect(); renderChart(); renderPostmealChart(); updateTIRStats(); updateIOBDisplay(); } }
+
+    // === TIR ===
+    function updateTIRStats() {
+        if (historyData.length === 0) { document.getElementById('tirValue').innerText = '-'; document.getElementById('avgGlucose').innerText = '-'; document.getElementById('glycemicVar').innerText = '-'; return; }
+        const readings = historyData.filter(x => x.sugar && x.type !== 'postmeal');
+        if (readings.length === 0) return;
+        const inRange = readings.filter(x => x.sugar >= 5 && x.sugar <= 7).length, tir = Math.round((inRange / readings.length) * 100), sum = readings.reduce((acc, x) => acc + x.sugar, 0), avg = sum / readings.length, mean = avg, variance = readings.reduce((acc, x) => acc + Math.pow(x.sugar - mean, 2), 0) / readings.length, stdDev = Math.sqrt(variance), cv = readings.length > 1 ? (stdDev / mean) * 100 : 0;
+        const tirEl = document.getElementById('tirValue'); tirEl.innerText = tir + '%'; tirEl.className = 'tir-value ' + (tir >= 70 ? 'tir-good' : tir >= 50 ? 'tir-warning' : 'tir-bad');
+        document.getElementById('avgGlucose').innerText = avg.toFixed(1); document.getElementById('glycemicVar').innerText = cv.toFixed(0) + '%';
+    }
+
+    // === После еды ===
+    function renderPostmealMealSelect() { const sel = document.getElementById('postmealMealSelect'); if (!sel) return; sel.innerHTML = '<option value="">— Не привязывать —</option>'; historyData.filter(x => x.type === 'meal' || x.products).slice(0, 10).forEach((m, i) => { const o = document.createElement('option'); o.value = m.timestamp || `meal_${i}`; o.textContent = `${m.time || '—'} • ${m.products || m.name || 'Приём пищи'} • ${m.he || '-'} ХЕ`; sel.appendChild(o); }); }
+    function getPostmealAdvice(sugar, timeH) { const tMin = parseFloat(document.getElementById('targetMin').value) || 5, tMax = parseFloat(document.getElementById('targetMax').value) || 7, sens = parseFloat(document.getElementById('sensitivity').value) || 2; let status = 'ok', statusText = '', adviceHtml = ''; if (timeH === 2) { if (sugar < 4.0) { status = 'low'; statusText = '🔴 Гипогликемия!'; const carbsNeeded = Math.round((4.0 - sugar) * 10); adviceHtml = `<h4>⚠️ Риск гипогликемии!</h4><div class="advice-carbs"><strong>Рекомендация:</strong><br>• Срочно съешьте ${carbsNeeded}-${carbsNeeded + 5}г быстрых углеводов</div>`; } else if (sugar >= 4.0 && sugar < 5.0) { status = 'low'; statusText = '🟡 Погранично низкий'; adviceHtml = `<h4>⚠️ Сахар близок к нижней границе</h4><div class="advice-carbs"><strong>Рекомендация:</strong><br>• Съешьте 5-10г быстрых углеводов</div>`; } else if (sugar >= 5.0 && sugar <= 8.0) { status = 'ok'; statusText = '✅ Отлично!'; adviceHtml = `<h4>✅ Доза подобрана верно!</h4><div class="advice-ok"><strong>Комментарий:</strong><br>• Сахар в целевом диапазоне</div>`; } else if (sugar > 8.0 && sugar <= 10.0) { status = 'high'; statusText = '🟡 Немного высокий'; adviceHtml = `<h4>💡 Возможно, мало инсулина</h4><div class="advice-insulin"><strong>Рекомендация:</strong><br>• Обсудите с врачом увеличение коэффициента</div>`; } else if (sugar > 10.0 && sugar <= 13.0) { status = 'high'; statusText = '🟠 Высокий'; adviceHtml = `<h4>⚠️ Стоит обсудить с врачом</h4><div class="advice-insulin"><strong>Рекомендация:</strong><br>• Обсудите увеличение коэффициента на ХЕ</div>`; } else { status = 'high'; statusText = '🔴 Очень высокий'; adviceHtml = `<h4>🚨 Требуется внимание!</h4><div class="advice-insulin"><strong>Рекомендация:</strong><br>• Проверьте кетоны при сахаре >15</div>`; } } else { if (sugar < tMin) { status = 'low'; statusText = '🔴 Ниже цели'; adviceHtml = `<div class="advice-carbs"><strong>Низкий сахар!</strong><br>Съешьте 10-15г углеводов</div>`; } else if (sugar > tMax + 3) { status = 'high'; statusText = '🔴 Выше цели'; adviceHtml = `<div class="advice-insulin"><strong>Высокий сахар!</strong><br>Рассмотрите коррекцию</div>`; } else if (sugar > tMax) { status = 'high'; statusText = '🟡 Немного выше'; adviceHtml = `<div class="advice-ok"><strong>Наблюдайте</strong><br>Сахар немного выше цели</div>`; } else { status = 'ok'; statusText = '✅ В цели'; adviceHtml = `<div class="advice-ok"><strong>Отлично!</strong><br>Сахар в целевом диапазоне</div>`; } } return { status, statusText, adviceHtml }; }
+    function savePostmealReading() { const mealId = document.getElementById('postmealMealSelect').value, timeH = parseInt(document.getElementById('postmealTime').value), sugar = parseFloat(document.getElementById('postmealSugar').value); if (!sugar || sugar <= 0 || isNaN(sugar)) { alert('Введите корректный сахар!'); return; } const advice = getPostmealAdvice(sugar, timeH), entry = { type: 'postmeal', mealId, postmealTime: timeH, sugar, sugarStatus: advice.status, advice: advice.statusText, timestamp: Date.now(), time: new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}), products: mealId ? '(после еды)' : 'Отдельное измерение' }; addToHistory(entry); lastPostmealResult = entry; document.getElementById('postmealResult').classList.add('show'); document.getElementById('postmealStatus').innerText = `${sugar} ммоль/л — ${advice.statusText}`; document.getElementById('postmealStatus').className = `postmeal-status postmeal-${advice.status}`; document.getElementById('postmealAdvice').innerHTML = advice.adviceHtml; renderPostmealChart(); updateTIRStats(); }
+    function closePostmealResult() { document.getElementById('postmealResult').classList.remove('show'); document.getElementById('postmealSugar').value = ''; lastPostmealResult = null; }
+    function sendPostmealResult() { if (!lastPostmealResult) return; const text = `🩸 Замер после еды\n\nСахар: ${lastPostmealResult.sugar} ммоль/л\nВремя: ${lastPostmealResult.postmealTime}ч\nСтатус: ${lastPostmealResult.advice}\n\n#ДиабетПомощник`; if (navigator.share) navigator.share({ title: 'Замер сахара', text }).catch(e => console.log('Share canceled')); else navigator.clipboard.writeText(text).then(() => alert('✅ Скопировано в буфер обмена!')); }
+
+    // === ✅ ИСПРАВЛЕННЫЕ ГРАФИКИ ===
+    
+    function initAllCharts() {
+        if (chartsReady) return;
+        initChart(); initPostmealChart();
+        chartsReady = true;
+        console.log('✅ Charts initialized');
+    }
+    
+    // ✅ ИСПРАВЛЕННАЯ инициализация основного графика
+    function initChart() {
+        const ctx = document.getElementById('mainChart');
+        if (!ctx || typeof Chart === 'undefined') return;
+        try {
+            if (mainChart) mainChart.destroy();
+            // ✅ ИСПРАВЛЕНО: Правильный синтаксис Chart.js - добавлено 'data:'
+            mainChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    animation: { duration: 0 },
+                    scales: {
+                        y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Углеводы (г)' } },
+                        y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Сахар (ммоль/л)' }, min: 0, max: 20 },
+                        x: { ticks: { maxRotation: 45, minRotation: 45, font: { size: 10 } } }
+                    },
+                    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
+                }
+            });
+            console.log('✅ Main chart initialized');
+        } catch(e) { console.error('❌ Main chart init error:', e); }
+    }
+
+    // ✅ ИСПРАВЛЕННАЯ инициализация графика после еды
+    function initPostmealChart() {
+        const ctx = document.getElementById('postmealChart');
+        if (!ctx || typeof Chart === 'undefined') return;
+        try {
+            if (postmealChart) postmealChart.destroy();
+            // ✅ ИСПРАВЛЕНО: Добавлено 'data:' перед объектом данных
+            postmealChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: '1 час после еды', data: [], borderColor: '#3498db', backgroundColor: 'rgba(52, 152, 219, 0.5)', pointRadius: 6, pointHoverRadius: 8, showLine: false, yAxisID: 'y' },
+                        { label: '2 часа после еды', data: [], borderColor: '#9b59b6', backgroundColor: 'rgba(155, 89, 182, 0.5)', pointRadius: 6, pointHoverRadius: 8, showLine: false, yAxisID: 'y' },
+                        { label: '3 часа после еды', data: [], borderColor: '#e67e22', backgroundColor: 'rgba(230, 126, 34, 0.5)', pointRadius: 6, pointHoverRadius: 8, showLine: false, yAxisID: 'y' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    animation: { duration: 0 },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Сахар (ммоль/л)' }, min: 0, max: 20, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { type: 'time', time: { unit: 'hour', displayFormats: { hour: 'HH:mm' } }, title: { display: true, text: 'Время замера' }, ticks: { font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.05)' } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { size: 11 }, usePointStyle: true, pointStyle: 'circle' } },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y} ммоль/л` } }
+                    }
+                }
+            });
+            console.log('✅ Postmeal chart initialized');
+        } catch(e) { console.error('❌ Postmeal chart init error:', e); }
+    }
+
+    // ✅ ИСПРАВЛЕННЫЙ рендер основного графика с фильтрами
+    function renderChart() {
+        if (!mainChart) { initChart(); if (!mainChart) return; }
+        
+        const now = Date.now();
+        const periods = { day: 24*60*60*1000, '3days': 3*24*60*60*1000, week: 7*24*60*60*1000, month: 30*24*60*60*1000 };
+        const cutoff = now - (periods[currentChartPeriod] || periods.day);
+        
+        // ✅ Исправленная фильтрация данных
+        const filtered = historyData.filter(x => {
+            return x && x.timestamp && x.timestamp >= cutoff && x.type !== 'postmeal' && x.sugar !== undefined;
+        }).reverse();
+        
+        const empty = document.getElementById('chartEmpty');
+        
+        if (filtered.length === 0) {
+            mainChart.data.labels = [];
+            mainChart.data.datasets = [];
+            mainChart.update('none');
+            if (empty) empty.style.display = 'block';
+            document.getElementById('statAvgSugar').innerText = '-';
+            document.getElementById('statTotalHe').innerText = '-';
+            document.getElementById('statCount').innerText = '0';
+            return;
+        }
+        if (empty) empty.style.display = 'none';
+        
+        const labels = [], sugarD = [], carbsD = [];
+        let sSum = 0, tHe = 0;
+        
+        for (let i = 0; i < filtered.length; i++) {
+            const f = filtered[i];
+            const d = new Date(f.timestamp);
+            labels.push(`${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`);
+            sugarD.push(f.sugar); sSum += f.sugar;
+            carbsD.push(parseFloat(f.totalCarbs) || 0); tHe += parseFloat(f.he) || 0;
+        }
+        
+        mainChart.data.labels = labels;
+        mainChart.data.datasets = [
+            { type: 'bar', label: 'Углеводы (г)', data: carbsD, backgroundColor: 'rgba(52, 152, 219, 0.7)', borderColor: '#3498db', borderWidth: 1, yAxisID: 'y' },
+            { type: 'line', label: 'Сахар (ммоль/л)', data: sugarD, borderColor: '#e74c3c', backgroundColor: 'rgba(231, 76, 60, 0.1)', borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#e74c3c', tension: 0.3, yAxisID: 'y1' }
+        ];
+        
+        mainChart.update('none');
+        
+        document.getElementById('statAvgSugar').innerText = (sSum / filtered.length).toFixed(1);
+        document.getElementById('statTotalHe').innerText = tHe.toFixed(1);
+        document.getElementById('statCount').innerText = filtered.length;
+    }
+
+    // ✅ ИСПРАВЛЕННЫЙ рендер графика после еды
+    function renderPostmealChart() {
+        if (!postmealChart) { initPostmealChart(); if (!postmealChart) return; }
+        
+        // ✅ Исправленная фильтрация данных для постпрандиального графика
+        const postmealData = historyData.filter(x => {
+            return x && x.type === 'postmeal' && x.sugar !== undefined && x.timestamp !== undefined;
+        });
+        
+        const empty = document.getElementById('postmealChartEmpty');
+        
+        if (postmealData.length === 0) {
+            postmealChart.data.datasets.forEach(ds => ds.data = []);
+            postmealChart.update('none');
+            if (empty) empty.style.display = 'block';
+            document.getElementById('statPostAvg').innerText = '-';
+            document.getElementById('statPostInTarget').innerText = '-';
+            document.getElementById('statPostCount').innerText = '0';
+            return;
+        }
+        if (empty) empty.style.display = 'none';
+        
+        const data1h = [], data2h = [], data3h = [];
+        let totalSugar = 0, inTarget = 0;
+        const tMin = parseFloat(document.getElementById('targetMin').value) || 5;
+        const tMax = parseFloat(document.getElementById('targetMax').value) || 7;
+        
+        for (let i = 0; i < postmealData.length; i++) {
+            const item = postmealData[i];
+            const point = { x: item.timestamp, y: item.sugar };
+            if (item.postmealTime === 1) data1h.push(point);
+            else if (item.postmealTime === 3) data3h.push(point);
+            else data2h.push(point);
+            totalSugar += item.sugar;
+            if (item.sugar >= tMin && item.sugar <= tMax) inTarget++;
+        }
+        
+        postmealChart.data.datasets[0].data = data1h;
+        postmealChart.data.datasets[1].data = data2h;
+        postmealChart.data.datasets[2].data = data3h;
+        
+        postmealChart.data.datasets.forEach((ds, idx) => { ds.hidden = ds.data.length === 0; });
+        
+        postmealChart.update('none');
+        
+        document.getElementById('statPostAvg').innerText = (totalSugar / postmealData.length).toFixed(1);
+        document.getElementById('statPostInTarget').innerText = Math.round((inTarget / postmealData.length) * 100) + '%';
+        document.getElementById('statPostCount').innerText = postmealData.length;
+    }
+
+    // ✅ Исправленное переключение периодов
+    function setChartPeriod(p) {
+        currentChartPeriod = p;
+        document.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        if (chartRenderDebounce) cancelAnimationFrame(chartRenderDebounce);
+        chartRenderDebounce = requestAnimationFrame(renderChart);
+    }
+
+    // === Экспорт/Импорт ===
+    function exportData() {
+        const data = { version: '7.3', exportDate: new Date().toISOString(), settings: localStorage.getItem('diabSettings'), history: historyData, customProducts: localStorage.getItem('customProducts'), timerState: localStorage.getItem('timerState') };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = `diabet-helper-${new Date().toISOString().split('T')[0]}.json`; a.click();
+        URL.revokeObjectURL(url);
+    }
+    function importData() { document.getElementById('importModal').style.display = 'flex'; }
+    function closeImportModal() { document.getElementById('importModal').style.display = 'none'; document.getElementById('importFile').value = ''; }
+    function processImport() {
+        const file = document.getElementById('importFile').files[0];
+        if (!file) { alert('Выберите файл!'); return; }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.history) { historyData = data.history; localStorage.setItem('diabHistory', JSON.stringify(historyData)); }
+                if (data.settings) localStorage.setItem('diabSettings', data.settings);
+                if (data.customProducts) localStorage.setItem('customProducts', data.customProducts);
+                if (data.timerState) localStorage.setItem('timerState', data.timerState);
+                alert('✅ Данные импортированы!'); location.reload();
+            } catch(err) { alert('❌ Ошибка импорта: ' + err.message); }
+        };
+        reader.readAsText(file);
+    }
+    function shareData() {
+        const text = `🩸 Диабет-Помощник v7.3\n\nВсего записей: ${historyData.length}\nПостпрандиальных: ${historyData.filter(x=>x.type==='postmeal').length}\nTIR: ${document.getElementById('tirValue').innerText}\n\n#ДиабетПомощник`;
+        if (navigator.share) navigator.share({ title: 'Диабет-Помощник', text }).catch(e => console.log('Share canceled'));
+        else navigator.clipboard.writeText(text).then(() => alert('✅ Скопировано в буфер обмена!'));
+    }
+    function processExportFile(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const data = JSON.parse(e.target.result); console.log('Export file:', data); } catch(err) { console.error('Export error:', err); } }; reader.readAsText(file); }
+</script>
+</div>
+</body>
+</html>
