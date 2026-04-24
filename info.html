@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>База знаний — Диабет-Помощник v7.3 Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0f7f4;
+    --surface: #ffffff;
+    --surface2: #f4faf7;
+    --accent: #27ae60;
+    --accent-dark: #1e8449;
+    --accent2: #3498db;
+    --accent3: #f39c12;
+    --danger: #e74c3c;
+    --purple: #9b59b6;
+    --text: #1a2e25;
+    --text2: #5a7a6a;
+    --border: #d5e8de;
+    --shadow: 0 2px 16px rgba(39,174,96,0.08);
+    --radius: 14px;
+    --radius-sm: 9px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #1e8449 0%, #27ae60 55%, #2ecc71 100%);
+    padding: clamp(22px,5vw,44px) clamp(16px,5vw,40px);
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .header::before {
+    content:''; position:absolute; top:-70px; right:-50px;
+    width:260px; height:260px; background:rgba(255,255,255,0.06); border-radius:50%;
+  }
+  .header::after {
+    content:''; position:absolute; bottom:-80px; left:-40px;
+    width:220px; height:220px; background:rgba(255,255,255,0.04); border-radius:50%;
+  }
+  .header-icon { font-size: clamp(34px,8vw,52px); display:block; margin-bottom:8px; position:relative; z-index:1; }
+  .header h1 { color:#fff; font-size:clamp(18px,5vw,30px); font-weight:800; letter-spacing:-0.3px; position:relative; z-index:1; }
+  .header p { color:rgba(255,255,255,0.85); font-size:clamp(12px,3vw,15px); margin-top:6px; max-width:520px; margin-left:auto; margin-right:auto; position:relative; z-index:1; }
+  .version-badge { display:inline-block; background:rgba(255,255,255,0.22); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:100px; padding:3px 12px; font-size:12px; font-weight:800; margin-top:8px; position:relative; z-index:1; }
+  .back-btn {
+    display:inline-flex; align-items:center; gap:6px; margin-top:14px;
+    background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.3);
+    border-radius:100px; padding:7px 18px; font-size:13px; font-family:'Nunito',sans-serif;
+    font-weight:700; cursor:pointer; text-decoration:none; transition:background .2s; position:relative; z-index:1;
+  }
+  .back-btn:hover { background:rgba(255,255,255,0.28); }
+
+  /* CONTAINER */
+  .container { max-width:820px; margin:0 auto; padding:clamp(14px,4vw,28px) clamp(10px,4vw,20px); }
+
+  /* TOC */
+  .toc { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; margin-bottom:20px; box-shadow:var(--shadow); }
+  .toc h2 { font-size:12px; font-weight:800; color:var(--text2); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; }
+  .toc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:7px; }
+  .toc-link {
+    display:flex; align-items:center; gap:8px; padding:8px 11px; border-radius:var(--radius-sm);
+    text-decoration:none; color:var(--accent-dark); font-size:13px; font-weight:700;
+    background:#eafaf1; transition:background .15s, transform .15s;
+  }
+  .toc-link:hover { background:#d5f5e3; transform:translateX(2px); }
+  .toc-num { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; background:var(--accent); color:#fff; border-radius:50%; font-size:10px; font-weight:800; flex-shrink:0; }
+
+  /* CONTROLS */
+  .controls { display:flex; justify-content:flex-end; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .ctrl-btn {
+    display:inline-flex; align-items:center; gap:5px; padding:6px 13px;
+    border-radius:100px; border:1px solid var(--border); background:var(--surface);
+    color:var(--text2); font-size:12px; font-weight:700; cursor:pointer;
+    transition:background .15s,color .15s; font-family:'Nunito',sans-serif;
+  }
+  .ctrl-btn:hover { background:#eafaf1; color:var(--accent); border-color:#a9dfbf; }
+
+  /* ACCORDION */
+  .section { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:10px; box-shadow:var(--shadow); overflow:hidden; transition:box-shadow .2s; }
+  .section:hover { box-shadow:0 4px 22px rgba(39,174,96,0.13); }
+  .section-header { display:flex; align-items:center; justify-content:space-between; padding:15px 18px; cursor:pointer; user-select:none; gap:10px; -webkit-tap-highlight-color:transparent; }
+  .section-header:hover { background:#f4faf7; }
+  .section-title-wrap { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+  .section-icon { font-size:20px; flex-shrink:0; }
+  .section-title { font-size:clamp(14px,3.5vw,16px); font-weight:800; color:var(--text); line-height:1.3; }
+  .chevron { width:26px; height:26px; border-radius:50%; background:#eafaf1; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:transform .3s,background .2s; font-size:13px; color:var(--accent); }
+  .section.open .chevron { transform:rotate(180deg); background:var(--accent); color:#fff; }
+  .section-body { max-height:0; overflow:hidden; transition:max-height .35s cubic-bezier(.4,0,.2,1); }
+  .section-body-inner { padding:0 18px 18px; border-top:1px solid var(--border); padding-top:15px; }
+
+  /* CONTENT */
+  .prose { font-size:14px; color:var(--text2); line-height:1.7; }
+  .prose p { margin-bottom:10px; }
+  .prose p:last-child { margin-bottom:0; }
+
+  /* FEATURE LIST */
+  .feature-list { list-style:none; display:flex; flex-direction:column; gap:9px; }
+  .feature-list li { display:flex; align-items:flex-start; gap:10px; font-size:13.5px; line-height:1.6; color:var(--text); background:var(--surface2); border-radius:var(--radius-sm); padding:10px 13px; border-left:3px solid var(--accent); }
+  .feature-list li .fi { flex-shrink:0; font-size:16px; margin-top:1px; }
+
+  /* STEPS */
+  .steps { display:flex; flex-direction:column; gap:12px; }
+  .step { display:flex; gap:13px; align-items:flex-start; background:var(--surface2); border-radius:var(--radius-sm); padding:13px; border:1px solid var(--border); }
+  .step-num { width:30px; height:30px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; flex-shrink:0; }
+  .step-content { flex:1; min-width:0; }
+  .step-title { font-size:13.5px; font-weight:800; color:var(--text); margin-bottom:4px; }
+  .step-desc { font-size:13px; color:var(--text2); line-height:1.6; }
+  .step-tip { margin-top:5px; font-size:12px; color:var(--accent-dark); font-weight:700; }
+
+  /* TABS */
+  .tabs { display:flex; flex-direction:column; gap:10px; }
+  .tab-item { border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; }
+  .tab-header { padding:11px 15px; font-size:13.5px; font-weight:800; color:var(--accent-dark); background:#eafaf1; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:8px; user-select:none; -webkit-tap-highlight-color:transparent; }
+  .tab-header:hover { background:#d5f5e3; }
+  .tab-chevron { font-size:11px; transition:transform .25s; }
+  .tab-item.open .tab-chevron { transform:rotate(180deg); }
+  .tab-body { max-height:0; overflow:hidden; transition:max-height .3s ease; }
+  .tab-body-inner { padding:12px 15px; font-size:13px; color:var(--text2); line-height:1.65; border-top:1px solid var(--border); }
+  .tab-body-inner ul { padding-left:16px; display:flex; flex-direction:column; gap:5px; margin-top:5px; }
+  .tab-body-inner li { color:var(--text); }
+
+  /* FAQ */
+  .faq { display:flex; flex-direction:column; gap:9px; }
+  .faq-item { border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; }
+  .faq-q { padding:12px 15px; font-size:13.5px; font-weight:700; color:var(--text); background:var(--surface2); cursor:pointer; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; user-select:none; -webkit-tap-highlight-color:transparent; line-height:1.4; }
+  .faq-q:hover { background:#eafaf1; }
+  .faq-chevron { flex-shrink:0; color:var(--text2); font-size:11px; margin-top:2px; transition:transform .25s; }
+  .faq-item.open .faq-chevron { transform:rotate(180deg); color:var(--accent); }
+  .faq-a { max-height:0; overflow:hidden; transition:max-height .3s ease; }
+  .faq-a-inner { padding:12px 15px; font-size:13px; color:var(--text2); line-height:1.65; border-top:1px solid var(--border); }
+
+  /* SETUP BLOCKS */
+  .setup-block { background:linear-gradient(135deg,#f0fdf4,#ecfdf5); border:1px solid #a7f3d0; border-radius:var(--radius-sm); padding:13px 15px; margin-bottom:11px; }
+  .setup-block:last-child { margin-bottom:0; }
+  .setup-block h4 { font-size:13px; font-weight:800; color:#065f46; margin-bottom:7px; display:flex; align-items:center; gap:6px; }
+  .setup-block p, .setup-block li { font-size:13px; color:#047857; line-height:1.6; }
+  .setup-block ul { padding-left:16px; margin-top:5px; display:flex; flex-direction:column; gap:4px; }
+
+  /* WARNINGS */
+  .warnings { display:flex; flex-direction:column; gap:10px; }
+  .warning { display:flex; gap:11px; align-items:flex-start; padding:13px; border-radius:var(--radius-sm); font-size:13.5px; line-height:1.65; }
+  .warning.red { background:#fef2f2; border-left:4px solid var(--danger); color:#991b1b; }
+  .warning.amber { background:#fffbeb; border-left:4px solid var(--accent3); color:#92400e; }
+  .warning.blue { background:#eff6ff; border-left:4px solid var(--accent2); color:#1e40af; }
+  .warning.green { background:#f0fdf4; border-left:4px solid var(--accent); color:#14532d; }
+  .warning.purple { background:#faf5ff; border-left:4px solid var(--purple); color:#581c87; }
+  .warning-icon { font-size:19px; flex-shrink:0; margin-top:1px; }
+  .warning strong { font-weight:800; display:block; margin-bottom:3px; }
+
+  /* IOB EXAMPLE BOX */
+  .example-box { background:#1e2d3d; border-radius:var(--radius-sm); padding:14px 16px; margin:10px 0; }
+  .example-box .ex-title { font-size:11px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+  .example-box .ex-line { font-family:'JetBrains Mono',monospace; font-size:12.5px; color:#a5f3fc; line-height:1.8; }
+  .example-box .ex-line.result { color:#86efac; font-weight:600; }
+  .example-box .ex-line.warn { color:#fbbf24; }
+  .example-box .ex-sep { border:none; border-top:1px solid #334155; margin:6px 0; }
+
+  /* CODE */
+  code { font-family:'JetBrains Mono',monospace; background:#f1f5f9; padding:1px 6px; border-radius:4px; font-size:11.5px; color:#0f766e; }
+
+  /* VERSION TIMELINE */
+  .changelog { display:flex; flex-direction:column; gap:0; }
+  .version-block { display:flex; gap:14px; }
+  .version-line { display:flex; flex-direction:column; align-items:center; }
+  .version-dot { width:14px; height:14px; border-radius:50%; background:var(--accent); flex-shrink:0; margin-top:4px; border:2px solid #fff; box-shadow:0 0 0 2px var(--accent); }
+  .version-dot.current { background:var(--accent3); box-shadow:0 0 0 2px var(--accent3); width:18px; height:18px; }
+  .version-connector { width:2px; flex:1; background:#d5e8de; margin:4px 0; min-height:20px; }
+  .version-content { flex:1; padding-bottom:16px; }
+  .version-tag { display:inline-block; padding:2px 10px; border-radius:100px; font-size:11px; font-weight:800; background:#eafaf1; color:var(--accent-dark); margin-bottom:6px; }
+  .version-tag.current { background:#fef9c3; color:#854d0e; }
+  .version-features { list-style:none; display:flex; flex-direction:column; gap:4px; }
+  .version-features li { font-size:13px; color:var(--text2); display:flex; gap:7px; align-items:flex-start; }
+  .version-features li::before { content:'•'; color:var(--accent); font-weight:800; flex-shrink:0; }
+
+  /* ADVANTAGES */
+  .adv-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; }
+  .adv-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:13px; }
+  .adv-card .adv-icon { font-size:24px; margin-bottom:7px; }
+  .adv-card .adv-title { font-size:13.5px; font-weight:800; color:var(--text); margin-bottom:4px; }
+  .adv-card .adv-desc { font-size:12.5px; color:var(--text2); line-height:1.55; }
+
+  /* CONTACTS */
+  .contacts { display:flex; flex-direction:column; gap:9px; }
+  .contact-link { display:flex; align-items:center; gap:11px; padding:12px 15px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); text-decoration:none; color:var(--text); font-size:13.5px; font-weight:600; transition:background .15s,transform .15s; }
+  .contact-link:hover { background:#eafaf1; transform:translateX(3px); }
+  .contact-icon { font-size:19px; }
+  .contact-label { color:var(--text2); font-size:11.5px; font-weight:600; }
+
+  .badge { display:inline-block; padding:1px 7px; border-radius:100px; font-size:10.5px; font-weight:800; background:#d5f5e3; color:var(--accent-dark); vertical-align:middle; margin-left:5px; }
+  .badge.warn { background:#fef9c3; color:#854d0e; }
+
+  .footer { text-align:center; padding:22px 16px; color:var(--text2); font-size:13px; border-top:1px solid var(--border); margin-top:6px; }
+
+  @media(max-width:480px){
+    .toc-grid { grid-template-columns:1fr 1fr; }
+    .section-header { padding:13px 13px; }
+    .section-body-inner { padding:12px 13px 15px; }
+    .adv-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-icon">🩺</span>
+  <h1>Диабет-Помощник — База знаний</h1>
+  <p>Полный справочник: расчёт болюса, активный инсулин IOB, настройка и советы</p>
+  <div class="version-badge">v7.3 Pro</div><br>
+  <a class="back-btn" href="./index.html">← Вернуться в приложение</a>
+</div>
+
+<div class="container">
+
+  <!-- TOC -->
+  <div class="toc">
+    <h2>📑 Оглавление</h2>
+    <div class="toc-grid">
+      <a class="toc-link" href="#s1"><span class="toc-num">1</span>О проекте</a>
+      <a class="toc-link" href="#s2"><span class="toc-num">2</span>Возможности</a>
+      <a class="toc-link" href="#s3"><span class="toc-num">3</span>Быстрый старт</a>
+      <a class="toc-link" href="#s4"><span class="toc-num">4</span>Руководство</a>
+      <a class="toc-link" href="#s5"><span class="toc-num">5</span>Настройка</a>
+      <a class="toc-link" href="#s6"><span class="toc-num">6</span>Активный инсулин IOB</a>
+      <a class="toc-link" href="#s7"><span class="toc-num">7</span>Преимущества</a>
+      <a class="toc-link" href="#s8"><span class="toc-num">8</span>История версий</a>
+      <a class="toc-link" href="#s9"><span class="toc-num">9</span>FAQ</a>
+      <a class="toc-link" href="#s10"><span class="toc-num">10</span>Предупреждения</a>
+      <a class="toc-link" href="#s11"><span class="toc-num">11</span>Контакты</a>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn" id="expandAll">▼ Развернуть все</button>
+    <button class="ctrl-btn" id="collapseAll">▲ Свернуть все</button>
+  </div>
+
+  <!-- S1: О проекте -->
+  <div class="section open" id="s1">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title-wrap"><span class="section-icon">📖</span><span class="section-title">О проекте</span></div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="section-body"><div class="section-body-inner prose">
+      <p>«Диабет-Помощник» — веб-приложение для людей с сахарным диабетом 1 типа и их родителей. Помогает точно рассчитать дозу инсулина на приём пищи с учётом углеводов (ХЕ), текущего сахара и активного инсулина в крови (IOB).</p>
+      <p>Приложение работает прямо в браузере — без установки, без регистрации, без передачи данных на сервер. Все данные хранятся на вашем устройстве. Текущая версия: <span class="badge warn">v7.3 Pro</span></p>
+    </div></div>
+  </div>
+
+  <!-- S2: Возможности -->
+  <div class="section" id="s2">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title-wrap"><span class="section-icon">⭐</span><span class="section-title">Ключевые возможности</span></div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="section-body"><div class="section-body-inner">
+      <ul class="feature-list">
+        <li><span class="fi">💉</span><div><strong>Расчёт болюса</strong> — учитывает ХЕ, текущий сахар, порог коррекции и активный инсулин IOB. Использует «Правило 100».</div></li>
+        <li><span class="fi">💊</span><div><strong>Активный инсулин (IOB)</strong> — автоматически сканирует историю уколов за последние N часов и вычитает остаток из дозы. Исключает стекинг инсулина.</div></li>
+        <li><span class="fi">🔍</span><div><strong>Поиск продуктов</strong> — фильтрация списка по вводу + автозаполнение веса из названия («Гречка 200» → 200 г).</div></li>
+        <li><span class="fi">⏱️</span><div><strong>Настраиваемый таймер</strong> — длительность задаётся в настройках (по умолчанию 120 мин). Продолжает работать после закрытия вкладки.</div></li>
+        <li><span class="fi">📈</span><div><strong>Постпрандиальный анализ</strong> — замеры через 1/2/3 часа с цветовой индикацией и конкретными советами по действиям.</div></li>
+        <li><span class="fi">📊</span><div><strong>Графики и TIR-статистика</strong> — Time in Range, средний сахар, вариативность (CV), линии целевого диапазона.</div></li>
+        <li><span class="fi">💾</span><div><strong>Экспорт / Импорт</strong> — скачать всю историю как JSON-файл и восстановить на другом устройстве.</div></li>
+        <li><span class="fi">✏️</span><div><strong>Редактирование истории</strong> — исправить или удалить любую запись прямо в списке.</div></li>
+        <li><span class="fi">📤</span><div><strong>Поделиться результатом</strong> — Web Share API или копирование в буфер обмена (отправить врачу).</div></li>
+        <li><span class="fi">📴</span><div><strong>Офлайн-режим</strong> — работает без интернета после первой загрузки.</div></li>
+      </ul>
+    </div></div>
+  </div>
+
+  <!-- S3: Быстрый старт -->
+  <div class="section" id="s3">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title-wrap"><span class="section-icon">🚀</span><span class="section-title">Быстрый старт <span class="badge">5 минут</span></span></div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="section-body"><div class="section-body-inner">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Настройте коэффициенты</div>
+            <div class="step-desc">«🧮 Калькулятор» → шестерёнка ⚙️ вверху → введите целевой диапазон сахара, Коэффициент на ХЕ, Фактор чувствительности и Длительность инсулина.</div>
+            <div class="step-tip">⚠️ Все цифры — только после согласования с эндокринологом!</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Добавьте продукты</div>
+            <div class="step-desc">Введите название в поле поиска, выберите продукт, укажите вес → «➕ Добавить». Можно добавить несколько блюд подряд.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Рассчитайте дозу</div>
+            <div class="step-desc">Введите текущий сахар (глюкометр или НМГ). Если есть остаточный инсулин — введите IOB вручную или дайте приложению посчитать автоматически. Нажмите «💉 Рассчитать дозу».</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">Таймер запустится автоматически</div>
+            <div class="step-desc">После расчёта таймер стартует сам. Разрешите уведомления браузера — придёт напоминание измерить сахар.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">Запишите результат</div>
+            <div class="step-desc">Вкладка «🍽️ После еды» → выберите «2 часа» → введите сахар → «💾 Сохранить». Получите оценку и рекомендацию.</div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- S4: Руководство -->
+  <div class="section" id="s4">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title-wrap"><span class="section-icon">📱</span><span class="section-title">Руководство по вкладкам</span></div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="section-body"><div class="section-body-inner">
+      <div class="tabs">
+        <div class="tab-item open">
+          <div class="tab-header" onclick="toggleTab(this)">🧮 Калькулятор <span class="tab-chevron">▼</span></div>
+          <div class="tab-body"><div class="tab-body-inner">
+            <ul>
+              <li><strong>Поиск продуктов:</strong> начните вводить название — список фильтруется мгновенно.</li>
+              <li><strong>Авто-вес:</strong> напишите «Гречка 200» — вес 200 г заполнится автоматически.</li>
+              <li><strong>Корзина:</strong> показывает ХЕ и расчётную дозу инсулина. Для коррекции высокого сахара без еды — добавьте «Коррекция» из списка.</li>
+              <li><strong>IOB:</strong> введите остаточный инсулин вручную или нажмите «Авто» — приложение просканирует историю.</li>
+              <li><strong>TIR-статистика:</strong> внизу вкладки — % попаданий в цель, средний сахар, вариативность CV.</li>
+              <li><strong>История:</strong> кнопки ✏️ и 🗑️ у каждой записи. «Очистить» — безвозвратно.</li>
+            </ul>
+          </div></div>
+        </div>
+        <div class="tab-item">
+          <div class="tab-header" onclick="toggleTab(this)">🍽️ После еды <span class="tab-chevron">▼</span></div>
+          <div class="tab-body"><div class="tab-body-inner">
+            <ul>
+              <li><strong>Низкий сахар (&lt;4.0):</strong> приложение покажет, сколько г быстрых углеводов съесть (правило 15/15).</li>
+              <li><strong>Высокий сахар (&gt;10.0):</strong> рассчитает дозу коррекции на основе вашего ФЧИ.</li>
+              <li>Кнопки «Закрыть» и «Отправить» — поделиться результатом с врачом или в чат.</li>
+              <li>Статистика: % замеров в целевом диапазоне за всё время.</li>
+            </ul>
+          </div></div>
+        </div>
+        <div class="tab-item">
+          <div class="tab-header" onclick="toggleTab(this)">📊 Графики <span class="tab-chevron">▼</span></div>
+          <div class="tab-body"><div class="tab-body-inner">
+            <ul>
+              <li><strong>Основной:</strong> синие столбцы — углеводы, красная линия — сахар, пунктир — границы 5–7 ммоль/л.</li>
+              <li><strong>Фильтры:</strong> Сегодня / 3 дня / Неделя / Месяц.</li>
+              <li><strong>Постпрандиальный:</strong> точки по часам 🔵 1ч / 🟣 2ч / 🟠 3ч.</li>
+              <li>Графики загружаются лениво (не тормозят приложение при большой истории).</li>
+            </ul>
+          </div></div>
+        </div>
+        <div class="tab-item">
+          <div class="tab-header" onclick="toggleTab(this)">⏱️ Таймер <span class="tab-chevron">▼</span></div>
+          <div class="tab-body"><div class="tab-body-inner">
+            <ul>
+              <li>Запускается автоматически после расчёта дозы.</li>
+              <li>Длительность настраивается в ⚙️ настройках (по умолчанию 120 мин).</li>
+              <li>Работает после закрытия вкладки — данные хранятся в <code>localStorage</code>.</li>
+              <li>При срабатывании — звук, вибрация и push-уведомление.</li>
+            </ul>
+          </div></div>
+        </div>
+        <div class="tab-item">
+          <div class="tab-header" onclick="toggleTab(this)">🐛 Debug / IOB <span class="tab-chevron">▼</span></div>
+          <div class="tab-body"><div class="tab-body-inner">
+            <ul>
+              <li>Показывает детальный расчёт IOB: какие уколы учтены, сколько времени прошло, сколько инсулина осталось активным.</li>
+              <li>Полезно при сомнениях: «Почему приложение вычло именно столько?»</li>
+              <li>Не используйте эту вкладку для принятия решений — только для проверки логики.</li>
+            </ul>
+          </div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- S5: Настройка -->
+  <div class="section" id="s5">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title-wrap"><span class="section-icon">⚙️</span><span class="section-title">Подробная настройка коэффициентов</span></div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="section-body"><div class="section-body-inner">
+
+      <div class="setup-block">
+        <h4>🎯 Целевой диапазон сахара</h4>
+        <p>Значения, которые считаются нормой лично для вас. Приложение использует их для цветовой индикации и расчёта дозы коррекции.</p>
+        <ul>
+          <li><strong>Нижняя граница</strong> (по умолчанию 5.0 ммоль/л) — ниже считается гипогликемия.</li>
+          <li><strong>Верхняя граница</strong> (по умолчанию 7.0 ммоль/л) — выше начинается коррекция.</li>
+          <li>Типичные рекомендации ADA для взрослых: 3.9–10.0 ммоль/л. Для беременных и детей — только с врачом.</li>
+        </ul>
+      </div>
+
+      <div class="setup-block">
+        <h4>🍞 Коэффициент на ХЕ (углеводный коэффициент, УК)</h4>
+        <p>Сколько единиц инсулина нужно на 1 ХЕ (= 12 г углеводов).</p>
+        <ul>
+          <li>Пример: УК = 1.5, вы съели 3 ХЕ → болюс на еду = 1.5 × 3 = <strong>4.5 ед</strong>.</li>
+          <li>Обычный диапазон: 0.5–2.5 ед/ХЕ. Утром обычно выше (феномен рассвета).</li>
+          <li>По умолчанию в приложении: 1.0 — замените на свой!</li>
+        </ul>
+      </div>
+
+      <div class="setup-block">
+        <h4>💧 Фактор чувствительности к инсулину (ФЧИ / ISF)</h4>
+        <p>На сколько ммоль/л одна единица инсулина снижает сахар.</p>
+        <ul>
+          <li>Расчёт по «Правилу 100»: ФЧИ = 100 ÷ суточная доза инсулина (ед/сут).</li>
+          <li>Пример: суточная доза 40 ед → ФЧИ = 100 ÷ 40 = <strong>2.5 ммоль/л на 1 ед</strong>.</li>
+          <li>Обычный диапазон: 1.5–4.0 ммоль/л. По умолчанию: 2.0 — замените!</li>
+        </ul>
+      </div>
+
+      <div class="setup-block">
+        <h4>⏳ Длительность действия инсулина</h4>
+        <p>Через сколько часов инсулин полностью перестаёт работать. Используется для расчёта IOB.</p>
+        <ul>
+          <li><strong>Ультракороткие аналоги</strong> (НовоРапид, Хумалог, Апидра): 3–4 часа.</li>
+          <li><strong>Короткий инсулин</strong> (Актрапид, Хумулин R): 5–7 часов.</li>
+          <li>По умолчанию в приложении: 4 часа. Уточните у врача какой инсулин вы используете.</li>
+        </ul>
+      </div>
+
+      <div class="setup-block">
+        <h4>📏 Порог коррекции</h4>
+        <p>Уровень сахара, выше которого приложение добавляет дозу коррекции к болюсу на еду.</p>
+        <ul>
+          <li>Обычно совпадает с верхней границей целевого диапазона (например, 7.0 ммоль/л).</li>
+          <li>Если сахар ниже порога — коррекция не добавляется.</li>
+          <li>Для коррекции высокого сахара без еды — выберите «Коррекция» в корзине продуктов.</li>
+        </ul>
+      </div>
+
+      <div class="setup-block">
+        <h4>🔔 Уведомления браузера</h4>
+        <ul>
+          <li>При первом расчёте браузер запросит разрешение — нажмите «Разрешить».</li>
+          <li>Если пропустили: адресная строка → 🔒 замок → «Разрешения» → «Уведомления: Разрешить».</li>
+          <li><strong>iPhone/iPad (Safari):</strong> добавьте страницу на домашний экран (Share → «На экран Домой») — только тогда работают push-уведомления.</li>
+          <li>Убедитесь что в настройках телефона для браузера уведомления включены.</li>
+        </ul>
+      </div>
+
+    </div></div>
+  </div>
+
+  <!-- S6: IOB -->
+  <div class="section" id="s6">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title-wrap"><span class="section-icon">💊</span><span class="section-title">Активный инсулин (IOB) — подробно</span></div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="section-body"><div class="section-body-inner">
+
+      <div class="warnings" style="margin-bottom:14px">
+        <div class="warning blue">
+          <span class="warning-icon">💡</span>
+          <div><strong>Что такое IOB?</strong>Insulin On Board — количество инсулина, которое ещё остаётся активным в крови после предыдущего укола. Если не учитывать IOB — можно ввести лишний инсулин и получить гипогликемию. Это называется «стекинг инсулина» (insulin stacking) — одна из самых частых причин опасного падения сахара.</div>
+        </div>
+      </div>
+
+      <div class="setup-block">
+        <h4>📐 Как приложение считает IOB</h4>
+        <p>Формула линейного распада:</p>
+        <div class="example-box">
+          <div class="ex-title">Формула</div>
+          <div class="ex-line">IOB = Доза × (1 − Время_прошло / Длительность_инсулина)</div>
+          <hr class="ex-sep">
+          <div class="ex-line warn">Пример: укол 4 ед, прошло 2 часа, длительность 4 часа</div>
+          <div class="ex-line">IOB = 4 × (1 − 2/4) = 4 × 0.5 = <span style="color:#86efac">2 ед остаётся активным</span></div>
+        </div>
+        <p>Приложение сканирует <strong>все уколы за последние N часов</strong> (N = длительность инсулина) и суммирует остатки по каждому уколу.</p>
+      </div>
+
+      <div class="setup-block">
+        <h4>🔢 Пример полного расчёта с IOB</h4>
+        <div class="example-box">
+          <div class="ex-title">Ситуация</div>
+          <div class="ex-line">Сахар: 9.5 ммоль/л | Цель: 6.0 | Еда: 3 ХЕ</div>
+          <div class="ex-line">Коэффициент на ХЕ: 1.5 | ФЧИ: 2.5 | IOB: 1.2 ед</div>
+          <hr class="ex-sep">
+          <div class="ex-line">Болюс на еду:    3 × 1.5 = 4.5 ед</div>
+          <div class="ex-line">Коррекция:       (9.5 − 6.0) / 2.5 = 1.4 ед</div>
+          <div class="ex-line">Итого без IOB:   4.5 + 1.4 = 5.9 ед</div>
+          <div class="ex-line warn">Минус IOB:       5.9 − 1.2 = <span style="color:#86efac">4.7 ед</span> — итоговая доза</div>
+          <hr class="ex-sep">
+          <div class="ex-line result">✅ Без учёта IOB вы бы ввели на 1.2 ед больше → риск гипо!</div>
+        </div>
+      </div>
+
+      <div class="setup-block">
+        <h4>❓ Если вы не уверены — как ввести IOB</h4>
+        <ul>
+          <li><strong>Автоматически:</strong> нажмите «Авто» рядом с полем IOB — приложение само просканирует историю уколов. Проверьте результат во вкладке Debug.</li>
+          <li><strong>Вручную:</strong> введите цифру сами. Если знаете что 2 часа назад вводили 3 ед → при ФЧИ 4ч остаток ≈ 1.5 ед.</li>
+          <li><strong>Если не знаете / не уверены:</strong> введите 0. Лучше немного перестраховаться и проверить сахар через час, чем угадывать.</li>
+        </ul>
+      </div>
+
+      <div class="setup-block">
+        <h4>⚠️ Когда IOB особенно важен</h4>
+        <ul>
+          <li>Частые перекусы (менее 3–4 часов между едой).</li>
+          <li>Коррекция высокого сахара — обязательно проверьте IOB перед уколом.</li>
+          <li>После физической нагрузки — чувствительность к инсулину выше, IOB опаснее.</li>
+          <li>Ночные расчёты — когда сложнее контролировать гипо.</li>
+        </ul>
+      </div>
+
+      <div class="warnings">
+        <div class="warning amber">
+          <span class="warning-icon">⚠️</span>
+          <div><strong>IOB — только болюсный инсулин</strong>Приложение учитывает только болюсные (короткие) уколы из истории. Базальный инсулин (длинный) в расчёт не входит — его вводите по отдельной схеме врача.</div>
+        </div>
+        <div class="warning red">
+          <span class="warning-icon">🚫</span>
+          <div><strong>Не делайте коррекцию чаще чем раз в 3–4 часа</strong>Даже если сахар кажется высоким — дождитесь пока предыдущий укол отработает. Два укола подряд с коротким интервалом — главная причина тяжёлой гипогликемии.</div>
+        </div>
+        <div class="warning green">
+          <span class="warning-icon">✅</span>
+          <div><strong>Правило безопасной коррекции</strong>Сделали укол → подождали 3–4 часа → сахар всё ещё высокий → тогда корректируйте снова. Именно для этого в приложении есть таймер.</div>
+        </div>
+      </div>
+
+    </div></div>
+  </div>
+
+  <!-- S7: Преимущества -->
+  <div class="section" id="s7">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title-wrap"><span class="section-icon">🏆</span><span class="section-title">Преимущества и советы по использованию</span></div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="section-body"><div class="section-body-inner">
+
+      <div class="adv-grid" style="margin-bottom:16px">
+        <div class="adv-card">
+          <div class="adv-icon">🔒</div>
+          <div class="adv-title">Полная приватность</div>
+          <div class="adv-desc">Данные хранятся только на вашем устройстве. Никакого облака, никаких серверов, никакой регистрации.</div>
+        </div>
+        <div class="adv-card">
+          <div class="adv-icon">📴</div>
+          <div class="adv-title">Работает офлайн</div>
+          <div class="adv-desc">После первой загрузки работает без интернета. Идеально для больниц, поездок, дач.</div>
+        </div>
+        <div class="adv-card">
+          <div class="adv-icon">🧠</div>
+          <div class="adv-title">Умный расчёт IOB</div>
+          <div class="adv-desc">Автоматически вычитает активный инсулин — защита от стекинга и гипогликемии.</div>
+        </div>
+        <div class="adv-card">
+          <div class="adv-icon">📊</div>
+          <div class="adv-title">Аналитика TIR</div>
+          <div class="adv-desc">Time in Range — главный показатель компенсации диабета. Видите тренды, а не разрозненные цифры.</div>
+        </div>
+        <div class="adv-card">
+          <div class="adv-icon">⚡</div>
+          <div class="adv-title">Быстрый ввод</div>
+          <div class="adv-desc">Поиск продуктов + автовес из названия. Добавить завтрак — за 20 секунд.</div>
+        </div>
+        <div class="adv-card">
+          <div class="adv-icon">📤</div>
+          <div class="adv-title">Экспорт для врача</div>
+          <div class="adv-desc">JSON-файл с полной историей или кнопка «Поделиться» — отправьте данные эндокринологу.</div>
+        </div>
+      </div>
+
+      <div class="warnings">
+        <div class="warning green">
+          <span class="warning-icon">💡</span>
+          <div><strong>Совет 1 — Заведите привычку вносить ВСЕ уколы</strong>IOB работает корректно только если в истории есть все болюсные уколы. Даже небольшую коррекцию — вносите сразу после введения.</div>
+        </div>
+        <div class="warning green">
+          <span class="warning-icon">💡</span>
+          <div><strong>Совет 2 — Делайте экспорт раз в неделю</strong>Данные хранятся в браузере. Если браузер обновится или очистит кэш — история пропадёт. Скачивайте JSON-резервную копию по кнопке «💾 Экспорт».</div>
+        </div>
+        <div class="warning green">
+          <span class="warning-icon">💡</span>
+          <div><strong>Совет 3 — Используйте «Поделиться» на приёме у врача</strong>Покажите статистику TIR прямо с экрана или отправьте JSON-файл заранее. Врачу будет намного проще подобрать коэффициенты.</div>
+        </div>
+        <div class="warning green">
+          <span class="warning-icon">💡</span>
+          <div><strong>Совет 4 — На iPhone добавьте на домашний экран</strong>Safari → кнопка «Поделиться» → «На экран Домой». Приложение будет открываться как нативное, уведомления таймера будут работать надёжнее.</div>
+        </div>
+        <div class="warning green">
+          <span class="warning-icon">💡</span>
+          <div><strong>Совет 5 — Настройте длительность инсулина точно</strong>Это самый важный параметр для IOB. Спросите врача какой именно инсулин вы используете и сколько он действует у вас лично — это индивидуально.</div>
+        </div>
+        <div class="warning blue">
+          <span class="warning-icon">📋</span>
+          <div><strong>Совет 6 — Ведите замеры через 1 и 2 часа после еды</strong>Это покажет реальную работу болюса. Если через 2 часа сахар стабильно выше 10 — коэффициент на ХЕ занижен. Обсудите с врачом.</div>
+        </div>
+      </div>
+
+    </div></div>
+  </div>
+
+  <!-- S8: Changelog -->
+  <div class="section" id="s8">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title-wrap"><span class="section-icon">🔄</span><span class="section-title">История версий</span></div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="section-body"><div class="section-body-inner">
+      <div class="changelog">
+        <div class="version-block">
+          <div class="version-line"><div class="version-dot current"></div><div class="version-connector"></div></div>
+          <div class="version-content">
+            <span class="version-tag current">v7.3 Pro — текущая</span>
+            <ul class="version-features">
+              <li>Настройка длительности действия инсулина (ч) — основа расчёта IOB</li>
+              <li>Автоматический расчёт IOB по истории уколов</li>
+              <li>Настраиваемый таймер (по умолчанию 120 мин)</li>
+              <li>Вкладка Debug — прозрачность расчёта IOB</li>
+            </ul>
+          </div>
+        </div>
+        <div class="version-block">
+          <div class="version-line"><div class="version-dot"></div><div class="version-connector"></div></div>
+          <div class="version-content">
+            <span class="version-tag">v7.0 Pro</span>
+            <ul class="version-features">
+              <li>Редактирование и удаление записей истории (✏️ 🗑️)</li>
+              <li>Отображение расчётной дозы инсулина прямо в корзине</li>
+              <li>Поиск продуктов с фильтрацией в реальном времени</li>
+              <li>Авто-вес из названия («Яблоко 150» → 150 г)</li>
+              <li>Валидация коэффициентов с предупреждениями</li>
+              <li>TIR-статистика: Time in Range, средний сахар, вариативность CV</li>
+              <li>Линии целевого диапазона на графике (5–7 ммоль/л)</li>
+              <li>Учёт активного инсулина IOB при расчёте</li>
+              <li>Авто-старт таймера после расчёта</li>
+            </ul>
+          </div>
+        </div>
+        <div class="version-block">
+          <div class="version-line"><div class="version-dot"></div><div class="version-connector"></div></div>
+          <div class="version-content">
+            <span class="version-tag">v6.1</span>
+            <ul class="version-features">
+              <li>Мгновенная загрузка истории при старте</li>
+              <li>Таймер на requestAnimationFrame (точнее setInterval)</li>
+              <li>Экспорт / Импорт данных в JSON-файл</li>
+              <li>Кнопка «Поделиться» — Web Share API + буфер обмена</li>
+              <li>Кнопки «Закрыть» и «Отправить» во вкладке «После еды»</li>
+              <li>Ленивая загрузка графиков + debounce для производительности</li>
+              <li>Восстановление таймера после закрытия вкладки</li>
+              <li>DocumentFragment для быстрого рендеринга списков</li>
+            </ul>
+          </div>
+        </div>
+        <div class="version-block">
+          <div class="version-line"><div class="version-dot"></div></div>
+          <div class="version-content">
+            <span class="version-tag">v6.0</span>
+            <ul class="version-features">
+              <li>Первая публичная версия</li>
+              <li>Расчёт болюса по «Правилу 100»</li>
+              <li>Таймер 2 часа с уведомлениями</li>
+              <li>Постпрандиальный анализ с цветовой индикацией</li>
+              <li>Графики сахара и углеводов</li>
+              <li>Свои продукты, история, автосохранение</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- S9: FAQ -->
+  <div class="section" id="s9">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title-wrap"><span class="section-icon">❓</span><span class="section-title">Частые вопросы (FAQ)</span></div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="section-body"><div class="section-body-inner">
+      <div class="faq">
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">Где взять мои коэффициенты (на ХЕ, чувствительности, длительность)? <span class="faq-chevron">▼</span></div>
+          <div class="faq-a"><div class="faq-a-inner">Только от вашего лечащего врача-эндокринолога. Это строго индивидуальные параметры. Длительность инсулина зависит от препарата — уточните какой именно вы используете. В приложении установлены безопасные значения по умолчанию (УК 1.0, ФЧИ 2.0, длительность 4 ч) — их обязательно замените на свои.</div></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">Почему приложение вычло из дозы меньше/больше чем я ожидал? <span class="faq-chevron">▼</span></div>
+          <div class="faq-a"><div class="faq-a-inner">Откройте вкладку Debug — там показан детальный расчёт IOB: какие уколы учтены, сколько прошло времени, сколько осталось. Проверьте что все болюсные уколы внесены в историю и что длительность инсулина в настройках соответствует вашему препарату.</div></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">Почему таймер не звонит? <span class="faq-chevron">▼</span></div>
+          <div class="faq-a"><div class="faq-a-inner">Проверьте: 1) таймер запустился (отсчёт идёт); 2) браузер разрешил уведомления для сайта (замок в адресной строке → Разрешения); 3) звук устройства включён; 4) на iPhone — добавьте страницу на домашний экран для работы push-уведомлений.</div></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">Как сделать резервную копию и перенести данные? <span class="faq-chevron">▼</span></div>
+          <div class="faq-a"><div class="faq-a-inner">Кнопка «💾 Экспорт» в шапке → скачается JSON-файл со всей историей. На новом устройстве нажмите «Импорт» и выберите тот же файл. Делайте резервную копию минимум раз в неделю — данные в браузере могут удалиться при очистке кэша.</div></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">Как откорректировать высокий сахар без еды? <span class="faq-chevron">▼</span></div>
+          <div class="faq-a"><div class="faq-a-inner">В корзине продуктов выберите пункт «Коррекция». Приложение рассчитает только дозу коррекции с учётом IOB, без болюса на еду. Обязательно проверьте IOB перед коррекцией — возможно предыдущий инсулин ещё работает.</div></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">Работает ли приложение на iPhone / Android? <span class="faq-chevron">▼</span></div>
+          <div class="faq-a"><div class="faq-a-inner">Да, адаптировано для мобильных. На iPhone: Safari → «Поделиться» → «На экран Домой» — работает как нативное приложение с уведомлениями. На Android добавьте в Chrome через меню → «Добавить на главный экран».</div></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">Учитывается ли базальный инсулин? <span class="faq-chevron">▼</span></div>
+          <div class="faq-a"><div class="faq-a-inner">Нет. IOB считается только для болюсного (короткого) инсулина. Базальный (длинный) вводится по отдельной схеме и в расчёт не входит. Не вносите дозу базального в историю уколов — это исказит расчёт IOB.</div></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">TIR 63% — это хорошо или плохо? <span class="faq-chevron">▼</span></div>
+          <div class="faq-a"><div class="faq-a-inner">По международным стандартам (ADA/EASD): TIR &gt;70% — хороший результат для взрослых с СД1. Для пожилых и детей цели могут отличаться. Ваш показатель обсудите с эндокринологом — он учтёт вашу конкретную ситуацию.</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- S10: Предупреждения -->
+  <div class="section" id="s10">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title-wrap"><span class="section-icon">⚠️</span><span class="section-title">Важные медицинские предупреждения</span></div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="section-body"><div class="section-body-inner">
+      <div class="warnings">
+        <div class="warning red">
+          <span class="warning-icon">🚨</span>
+          <div><strong>Не заменяет врача</strong>Приложение — вспомогательный инструмент. Все решения по изменению доз инсулина, коэффициентов и целевых уровней принимаются только после консультации с эндокринологом.</div>
+        </div>
+        <div class="warning red">
+          <span class="warning-icon">⚡</span>
+          <div><strong>Гипогликемия — действуйте немедленно</strong>При сахаре &lt;4.0 ммоль/л: немедленно съешьте 15 г быстрых углеводов (4 кусочка сахара / ½ стакана сока / 5 таблеток глюкозы). Не откладывайте — читайте советы приложения потом. Через 15 минут повторите замер.</div>
+        </div>
+        <div class="warning red">
+          <span class="warning-icon">🔬</span>
+          <div><strong>Высокий сахар (&gt;15 ммоль/л) — проверьте кетоны</strong>Перед коррекционным уколом при сахаре выше 15 ммоль/л — проверьте уровень кетонов в крови/моче. Вводить большую дозу инсулина при кетоацидозе без контроля опасно.</div>
+        </div>
+        <div class="warning amber">
+          <span class="warning-icon">⏳</span>
+          <div><strong>Не колите повторно раньше чем через 3–4 часа</strong>Стекинг инсулина (несколько уколов подряд с коротким интервалом) — главная причина тяжёлой гипогликемии. Используйте IOB и таймер чтобы контролировать интервал.</div>
+        </div>
+        <div class="warning amber">
+          <span class="warning-icon">🏃</span>
+          <div><strong>После физической нагрузки</strong>Чувствительность к инсулину повышается на 2–4 часа после тренировки. Рассчитанная доза может оказаться слишком большой. Снижайте дозу и чаще измеряйте сахар — конкретные цифры согласуйте с врачом.</div>
+        </div>
+        <div class="warning blue">
+          <span class="warning-icon">🔒</span>
+          <div><strong>Данные хранятся только на вашем устройстве</strong>Приложение не отправляет данные врачу автоматически. Используйте экспорт JSON и кнопку «Поделиться» чтобы передать историю специалисту.</div>
+        </div>
+        <div class="warning purple">
+          <span class="warning-icon">👶</span>
+          <div><strong>Для детей — только под контролем взрослых</strong>Коэффициенты у детей меняются быстро (рост, болезни, физическая активность). Настройки должны регулярно пересматриваться с педиатром-эндокринологом.</div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- S11: Контакты -->
+  <div class="section" id="s11">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-title-wrap"><span class="section-icon">💬</span><span class="section-title">Контакты и обратная связь</span></div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="section-body"><div class="section-body-inner">
+      <p class="prose" style="margin-bottom:13px">Нашли ошибку, хотите предложить функцию (экспорт в PDF, синхронизация с НМГ, многопользовательский режим) или поблагодарить автора:</p>
+      <div class="contacts">
+        <a class="contact-link" href="https://t.me/ВашНик">
+          <span class="contact-icon">✈️</span>
+          <div><div>Telegram</div><div class="contact-label">@ВашНик</div></div>
+        </a>
+        <a class="contact-link" href="mailto:ваш_email@gmail.com">
+          <span class="contact-icon">📧</span>
+          <div><div>Email</div><div class="contact-label">ваш_email@gmail.com</div></div>
+        </a>
+        <a class="contact-link" href="#">
+          <span class="contact-icon">🐛</span>
+          <div><div>GitHub Issues</div><div class="contact-label">Сообщить об ошибке или предложить функцию</div></div>
+        </a>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="footer">
+    💙 Стабильных сахаров и хорошей компенсации! Версия базы знаний: 7.3 Pro
+  </div>
+</div>
+
+<script>
+  function toggleSection(header) {
+    const section = header.closest('.section');
+    const body = section.querySelector('.section-body');
+    const isOpen = section.classList.contains('open');
+    if (isOpen) {
+      section.classList.remove('open');
+      body.style.maxHeight = '0';
+    } else {
+      section.classList.add('open');
+      body.style.maxHeight = body.scrollHeight + 2000 + 'px';
+    }
+  }
+
+  function toggleTab(header) {
+    const item = header.closest('.tab-item');
+    const body = item.querySelector('.tab-body');
+    const isOpen = item.classList.contains('open');
+    if (isOpen) {
+      item.classList.remove('open');
+      body.style.maxHeight = '0';
+    } else {
+      item.classList.add('open');
+      body.style.maxHeight = body.scrollHeight + 'px';
+    }
+    expandParentSection(item);
+  }
+
+  function toggleFaq(qEl) {
+    const item = qEl.closest('.faq-item');
+    const aEl = item.querySelector('.faq-a');
+    const isOpen = item.classList.contains('open');
+    if (isOpen) {
+      item.classList.remove('open');
+      aEl.style.maxHeight = '0';
+    } else {
+      item.classList.add('open');
+      aEl.style.maxHeight = aEl.scrollHeight + 'px';
+    }
+    expandParentSection(item);
+  }
+
+  function expandParentSection(el) {
+    const body = el.closest('.section-body');
+    if (body) setTimeout(() => { body.style.maxHeight = body.scrollHeight + 2000 + 'px'; }, 320);
+  }
+
+  // Init open sections
+  document.querySelectorAll('.section.open').forEach(s => {
+    s.querySelectorAll('.tab-item.open').forEach(t => {
+      t.querySelector('.tab-body').style.maxHeight = t.querySelector('.tab-body').scrollHeight + 'px';
+    });
+    setTimeout(() => {
+      s.querySelector('.section-body').style.maxHeight = s.querySelector('.section-body').scrollHeight + 2000 + 'px';
+    }, 50);
+  });
+
+  // TOC smooth scroll
+  document.querySelectorAll('.toc-link').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (!target) return;
+      const body = target.querySelector('.section-body');
+      if (!target.classList.contains('open')) {
+        target.classList.add('open');
+        body.style.maxHeight = body.scrollHeight + 2000 + 'px';
+      }
+      setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    });
+  });
+
+  document.getElementById('expandAll').addEventListener('click', () => {
+    document.querySelectorAll('.section').forEach(s => {
+      s.classList.add('open');
+      s.querySelectorAll('.tab-item').forEach(t => {
+        t.classList.add('open');
+        t.querySelector('.tab-body').style.maxHeight = t.querySelector('.tab-body').scrollHeight + 'px';
+      });
+      s.querySelectorAll('.faq-item').forEach(f => {
+        f.classList.add('open');
+        f.querySelector('.faq-a').style.maxHeight = f.querySelector('.faq-a').scrollHeight + 'px';
+      });
+      setTimeout(() => {
+        s.querySelector('.section-body').style.maxHeight = s.querySelector('.section-body').scrollHeight + 2000 + 'px';
+      }, 50);
+    });
+  });
+
+  document.getElementById('collapseAll').addEventListener('click', () => {
+    document.querySelectorAll('.section').forEach(s => {
+      s.classList.remove('open');
+      s.querySelector('.section-body').style.maxHeight = '0';
+      s.querySelectorAll('.tab-item').forEach(t => { t.classList.remove('open'); t.querySelector('.tab-body').style.maxHeight = '0'; });
+      s.querySelectorAll('.faq-item').forEach(f => { f.classList.remove('open'); f.querySelector('.faq-a').style.maxHeight = '0'; });
+    });
+  });
+</script>
+</body>
+</html>
